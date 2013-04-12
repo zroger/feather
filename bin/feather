@@ -1,6 +1,8 @@
 #!/usr/bin/env php
 <?php
 
+define('FEATHER_VERSION', 'DEV');
+
 function includeIfExists($file)
 {
     if (file_exists($file)) {
@@ -16,9 +18,7 @@ if ((!$loader = includeIfExists(__DIR__.'/../vendor/autoload.php')) && (!$loader
     );
 }
 
-use Zroger\Feather\Command\RunCommand;
-use Symfony\Component\Console\Application;
+use Zroger\Feather\Application;
 
-$app = new Application();
-$app->add(new RunCommand());
+$app = new Application(FEATHER_VERSION);
 $app->run();

@@ -1,15 +1,11 @@
-ServerRoot /usr
+# ServerRoot /usr
+ServerRoot {{ cache_dir }}
 
-#
-# Required modules
-#
-LoadModule authz_host_module libexec/apache2/mod_authz_host.so
-LoadModule dir_module libexec/apache2/mod_dir.so
-LoadModule mime_module libexec/apache2/mod_mime.so
-LoadModule log_config_module libexec/apache2/mod_log_config.so
-LoadModule rewrite_module libexec/apache2/mod_rewrite.so
-LoadModule status_module libexec/apache2/mod_status.so
-LoadModule php5_module /usr/local/Cellar/php53/5.3.21/libexec/apache2/libphp5.so
+{% for module, path in modules if path %}
+LoadModule {{ module }} {{ path }}
+{% else %}
+# no modules found.
+{% endfor %}
 
 <IfModule php5_module>
   AddType application/x-httpd-php .php
@@ -19,18 +15,21 @@ LoadModule php5_module /usr/local/Cellar/php53/5.3.21/libexec/apache2/libphp5.so
   </IfModule>
 </IfModule>
 
-#
-# Custom configuration built by drush
-#
-PidFile {{ tmp_dir }}/httpd.pid
-LockFile {{ tmp_dir }}/accept.lock
+# PidFile {{ cache_dir }}/httpd.pid
+# LockFile {{ cache_dir }}/accept.lock
+PidFile httpd.pid
+LockFile accept.lock
 
 ServerName localhost
 Listen {{ port }}
 
+LogLevel debug
+
+# Using tee since the error log is a fifo, which causes httpd to hang.
 ErrorLog "|/usr/bin/tee -a {{ error_log }}"
-LogFormat "%h %l %u %t \"%r\" %>s %b" common
-CustomLog {{ tmp_dir }}/access_log common
+
+# Use error_log for access logs as well so they show up in the console.
+CustomLog "|/usr/bin/tee -a {{ error_log }}" "\"%r\" %>s %b"
 
 DocumentRoot "{{ root }}"
 <Directory "{{ root }}">

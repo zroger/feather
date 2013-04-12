@@ -8,10 +8,15 @@
         }
     ],
     "require": {
+        "symfony/config": "*",
         "symfony/console": "*",
         "symfony/process": "*",
         "symfony/yaml": "*",
         "twig/twig": "1.*"
+    },
+    "require-dev": {
+        "symfony/finder": "*",
+        "herrera-io/box": "1.*"
     },
     "autoload": {
         "psr-0": { "Zroger\\Feather\\": "src" }

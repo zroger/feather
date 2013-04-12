@@ -6,7 +6,11 @@ class ErrorLog {
   private $filename, $handle;
 
   public function __construct($filename) {
-    if(!posix_mkfifo($filename, 0666)){
+    if (file_exists($filename)) {
+      unlink($filename);
+    }
+
+    if (!posix_mkfifo($filename, 0666)){
       throw new \RuntimeException("Error creating pipe for error log ($filename).");
     }
 
@@ -29,11 +33,15 @@ class ErrorLog {
     $rx = "/\[([^\]]+)\] \[([^\]]+)\] (.*)/";
     if ($input = trim(fgets($this->getHandle()))) {
       $line = new \stdClass();
-      $line->message = $input;
       if (preg_match($rx, $input, $matches)) {
         $line->date = $matches[1];
         $line->type = $matches[2];
         $line->message = $matches[3];
+      }
+      else {
+        $line->date = null;
+        $line->type = 'access';
+        $line->message = $input;
       }
       return $line;
     }

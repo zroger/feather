@@ -1,0 +1,48 @@
+## Overview
+
+Feather is the simplest way to use the Apache HTTP server in a local development
+environment.
+
+## Per-project installation via composer
+
+To use feather for a single project, simply add feather to your `composer.json`,
+file, ususally in the `require-dev` section.
+
+{% highlight json %}
+{
+    "require-dev": {
+        "zroger/feather": "*"
+    },
+    "minimum-stability": "dev",
+    "config": {
+        "bin-dir": "bin/"
+    }
+}
+{% endhighlight %}
+
+Run `composer update`, then feather will be located at `bin/feather`.
+
+
+## System-wide installation via phar download
+
+Feather is even more useful when installed system-wide.  These instructions assume
+that you have a `/usr/local/bin` directory in your path.
+
+{% highlight bash %}
+cd /usr/local/bin
+curl -o feather http://zroger.github.io/feather/feather.phar
+chmod +x feather
+{% endhighlight %}
+
+After this you can run feather from any directory on your system.
+
+## Usage
+
+```
+feather run [--port port] [docroot]
+```
+
+Start up a web server using the specified document root and port number.  Port
+defaults to 8080, and docroot defaults to the current directory.
+
+

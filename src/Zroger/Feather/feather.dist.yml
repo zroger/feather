@@ -1,0 +1,9 @@
+root: ~
+port: 8080
+modules:
+  authz_host_module: mod_authz_host.so
+  dir_module:        mod_dir.so
+  mime_module:       mod_mime.so
+  log_config_module: mod_log_config.so
+  rewrite_module:    mod_rewrite.so
+  php5_module:       libphp5.so

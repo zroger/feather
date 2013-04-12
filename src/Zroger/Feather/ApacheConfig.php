@@ -3,17 +3,22 @@
 namespace Zroger\Feather;
 
 use Symfony\Component\Yaml\Yaml;
+use Symfony\Component\Config\FileLocator;
 
 class ApacheConfig {
-  protected $template, $port, $root, $tmp_dir, $error_log;
+  protected $template, $port, $root, $cache_dir, $error_log;
 
-  public function __construct() {
-    $this->port = '8080';
-    $this->root = posix_getcwd();
+  public function __construct($cache_dir, $appConfig = array()) {
+    $this->cache_dir = $cache_dir;
+    $this->appConfig = array_replace(array(
+      'port' => 8080,
+      'root' => posix_getcwd(),
+      'template' => 'drupal.twig',
+    ), $appConfig);
   }
 
   public function getTemplate() {
-    return $this->template;
+    return $this->template ?: $this->appConfig['template'];
   }
 
   public function setTemplate($template) {
@@ -21,7 +26,7 @@ class ApacheConfig {
   }
 
   public function getPort() {
-    return $this->port;
+    return $this->port ?: $this->appConfig['port'];
   }
 
   public function setPort($port) {
@@ -29,55 +34,70 @@ class ApacheConfig {
   }
 
   public function getRoot() {
-    return $this->root;
+    return $this->root ?: $this->appConfig['root'];
   }
 
   public function setRoot($root) {
     $this->root = $root;
   }
 
-  public function getTmpDir() {
-    if (!isset($this->tmp_dir)) {
-      $dir = sprintf("%s/feather.%s", sys_get_temp_dir(), getmypid());
-      if (!is_dir($dir)) {
-          mkdir($dir);
-      }
-      $this->tmp_dir = $dir;
-    }
-    return $this->tmp_dir;
+  public function getCacheDir() {
+    return $this->cache_dir;
   }
 
   public function getErrorLog() {
     if (!isset($this->error_log)) {
-      $this->error_log = new ErrorLog($this->getTmpDir() . '/error_log');
+      $this->error_log = new ErrorLog($this->getCacheDir() . '/error_log');
     }
     return $this->error_log;
   }
 
-  public function loadYaml($file) {
-    $data = Yaml::parse($file);
-
-    if (isset($data['root'])) {
-      $this->setRoot(dirname($file) . '/' . $data['root']);
+  public function getModules() {
+    $modules = array();
+    foreach ($this->appConfig['modules'] as $module => $filename) {
+      $modules[$module] = $this->locateModule($filename);
     }
-
-    if (isset($data['port'])) {
-      $this->setPort($data['port']);
-    }
+    return $modules;
   }
 
   public function toFile() {
     $loader = new \Twig_Loader_Filesystem(dirname(__FILE__) . "/templates");
     $twig = new \Twig_Environment($loader);
 
-    $rendered = $twig->render('drupal.twig', array(
+    $vars = array(
       'port' => $this->getPort(),
       'root' => $this->getRoot(),
-      'tmp_dir' => $this->getTmpDir(),
+      'cache_dir' => $this->getCacheDir(),
       'error_log' => $this->getErrorLog()->getFilename(),
-    ));
-    $conf_file = $this->getTmpDir() . '/httpd.conf';
+      'modules' => $this->getModules(),
+    );
+    $rendered = $twig->render($this->getTemplate(), $vars);
+    $conf_file = $this->getCacheDir() . '/httpd.conf';
     file_put_contents($conf_file, $rendered);
     return $conf_file;
+  }
+
+  protected function getModuleDirectories() {
+    if (!isset($this->moduleDirectories)) {
+      $dirs = array();
+
+      // PHP 5.3 from josegonzalez/php/php53 homebrew tap.
+      if (exec('which brew')) {
+        if ($php_dir = exec('brew --prefix php53')) {
+          $dirs[] = $php_dir . '/libexec/apache2';
+        }
+      }
+
+      // osx default apache.
+      $dirs[] = '/usr/libexec/apache2';
+
+      $this->moduleDirectories = $dirs;
+    }
+    return $this->moduleDirectories;
+  }
+
+  protected function locateModule($filename) {
+    $locator = new FileLocator($this->getModuleDirectories());
+    return $locator->locate($filename, null, true);
   }
 }

@@ -2,14 +2,18 @@
 
 namespace Zroger\Feather\Command;
 
+use Zroger\Feather\Apache;
 use Zroger\Feather\ApacheConfig;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Component\Console\Formatter\OutputFormatterStyle;
 use Symfony\Component\Process\Process;
+
+use Symfony\Component\Yaml\Yaml;
+use Symfony\Component\Config\Definition\Processor;
+use Zroger\Feather\Config\AppConfig;
 
 class RunCommand extends Command
 {
@@ -42,83 +46,51 @@ class RunCommand extends Command
 
     protected function getConfig() {
         if (!isset($this->config)) {
-            $this->config = new ApacheConfig();
+            $this->config = new ApacheConfig($this->getApplication()->getProjectCacheDir(), $this->getApplication()->getConfig());
         }
         return $this->config;
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        // Yaml file is loaded first.
-        if ($yaml = $this->findYamlFile()) {
-            $this->getConfig()->loadYaml($yaml);
-        }
-
-        // Then CLI options.
+        // Collect the CLI args and options into a config array.
+        $cli_config = array();
         if ($port = $input->getOption('port')) {
-            $this->getConfig()->setPort($port);
+            $cli_config['port'] = $port;
         }
         if ($root = $input->getArgument('root')) {
-            $this->getConfig()->setRoot($root);
+            $cli_config['root'] = $root;
         }
+        $this->getApplication()->setConfig($cli_config);
 
         // catch app interruption
         if (function_exists('pcntl_signal')) {
             declare(ticks = 1);
-            $this->output = $output;
             pcntl_signal(SIGINT, array($this, 'shutdown'));
         }
 
-        $style = new OutputFormatterStyle('red', null, array('bold', 'blink'));
-        $output->getFormatter()->setStyle('error', $style);
+        $this->apache = new Apache($this->getApplication()->getProjectCacheDir());
 
-        $style = new OutputFormatterStyle('yellow', null, array('bold', 'blink'));
-        $output->getFormatter()->setStyle('debug', $style);
-        $output->getFormatter()->setStyle('notice', $style);
-
-        $output->writeln('<info>Starting server...</info>');
-        $process = new Process(sprintf('apachectl -f "%s" -k start -e debug', $this->getConfig()->toFile()));
-        $process->start();
-        if (!$process->isSuccessful()) {
-            throw new \RuntimeException("Error starting httpd.");
-        }
+        $this->getApplication()->log('Starting server...', 'info');
+        $this->apache->start();
         $port = $this->getConfig()->getPort();
-        $output->writeln("<info>Listening on 0.0.0.0:{$port}, CTRL+C to stop.</info>");
-        $output->writeln(sprintf('<info>Using config file: %s</info>', $this->getConfig()->toFile()));
+        $this->getApplication()->log("Listening on 0.0.0.0:{$port}, CTRL+C to stop.", 'info');
+        $this->getApplication()->log(sprintf('Using config file: %s', $this->getConfig()->toFile()), 'info');
 
         while (TRUE) {
             while ($line = $this->getConfig()->getErrorLog()->read()) {
-                $output->writeln(sprintf('<%s>[%s]</%s> %s', $line->type, $line->type, $line->type, $line->message));
+                $this->getApplication()->log($line->message, $line->type);
             }
-            usleep(500);
+            usleep(200);
         }
-    }
-
-    protected function findYamlFile() {
-        $pwd = posix_getcwd();
-        $conf = "$pwd/feather.yml";
-
-        while (!(file_exists($conf))) {
-            $pwd = dirname($pwd);
-            $conf = "$pwd/feather.yml";
-            if ($pwd == "/") {
-                return false;
-            }
-        }
-
-        return $conf;
     }
 
     public function shutdown() {
-        // The new-line is because this normally happens after a ^C
-        $this->output->writeln('');
-        $this->output->writeln('<info>Shutting down...</info>');
-        $process = new Process(sprintf('apachectl -f "%s" -k stop', $this->getConfig()->toFile()));
-        $process->run();
-        if (!$process->isSuccessful()) {
-            throw new \RuntimeException("Error stopping httpd.");
-        }
-        $this->output->writeln("<info>Server successfully stopped.</info>");
+        // The extra log is to get a clean line after a ^C
+        $this->getApplication()->log('');
+        $this->getApplication()->log('Shutting down...', 'info');
+        $this->apache->stop();
+        $this->getApplication()->log('Server successfully stopped.', 'info');
 
         exit();
     }
