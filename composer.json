@@ -1,0 +1,20 @@
+{
+    "name": "zroger/feather",
+    "description": "Easily run apache for the current directory or project.",
+    "authors": [
+        {
+            "name": "Roger López",
+            "email": "lopez.roger@gmail.com"
+        }
+    ],
+    "require": {
+        "symfony/console": "*",
+        "symfony/process": "*",
+        "symfony/yaml": "*",
+        "twig/twig": "1.*"
+    },
+    "autoload": {
+        "psr-0": { "Zroger\\Feather\\": "src" }
+    },
+    "bin": ["bin/feather"]
+}
