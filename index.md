@@ -57,7 +57,7 @@ starting the server.  Currently supported values are `root` and `port`.  The
 can be very handy to put at the root of your project repo, especially when your
 document root is not the same as your project root.
 
-{% highlight yml %}
+{% highlight yaml %}
 root: build/html
 port: 9999
 {% endhighlight %}
