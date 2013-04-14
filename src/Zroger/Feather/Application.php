@@ -105,8 +105,12 @@ class Application extends BaseApplication {
   public function getProjectCacheDir() {
     if (!isset($this->projectCacheDir)) {
       $dir = $this->getProjectRoot() . '/.feather';
-      if (!is_dir($dir) && !mkdir($dir)) {
-        throw new \RuntimeException("Unable to create cache directory {$dir}");
+      if (!is_dir($dir)) {
+        if (!mkdir($dir)) {
+          throw new \RuntimeException("Unable to create cache directory {$dir}");
+        }
+        // Nothing in this folder should be committed.
+        file_put_contents($dir . "/.gitignore", "*\n");
       }
       $this->projectCacheDir = $dir;
     }
