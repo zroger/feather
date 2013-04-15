@@ -46,7 +46,7 @@ class RunCommand extends Command
 
     protected function getConfig() {
         if (!isset($this->config)) {
-            $this->config = new ApacheConfig($this->getApplication()->getProjectCacheDir(), $this->getApplication()->getConfig());
+            $this->config = new ApacheConfig($this->getApplication()->getServerRoot(), $this->getApplication()->getConfig());
         }
         return $this->config;
     }
@@ -69,7 +69,10 @@ class RunCommand extends Command
             pcntl_signal(SIGINT, array($this, 'shutdown'));
         }
 
-        $this->apache = new Apache($this->getApplication()->getProjectCacheDir());
+        $this->apache = new Apache($this->getApplication()->getServerRoot());
+
+        // Open error log pipe before starting apache.
+        $this->getConfig()->getErrorLog()->getHandle();
 
         $this->getApplication()->log('Starting server...', 'info');
         $this->apache->start();

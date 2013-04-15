@@ -14,18 +14,20 @@ use Symfony\Component\Config\FileLocator;
 use Zroger\Feather\Config\AppConfig;
 
 class Application extends BaseApplication {
+  private $serverRoot, $projectRoot, $logBuffer = array(), $logger, $config, $configs = array();
+
   public function __construct($version) {
     parent::__construct('Feather', $version);
     $this->add(new Command\RunCommand());
 
+    // Load default config values.
     $this->loadYamlConfig(dirname(__FILE__) .'/feather.dist.yml');
 
+    // Try to load config values from project-specific config file.
     $locator = new FileLocator($this->getProjectRoot());
     if ($yamlFile = $locator->locate('feather.yml', null, true)) {
       $this->loadYamlConfig($yamlFile);
     }
-
-    $this->logBuffer = array();
   }
 
   protected function loadYamlConfig($filepath) {
@@ -102,8 +104,8 @@ class Application extends BaseApplication {
    *
    * @return string The path to the project cache directory.
    */
-  public function getProjectCacheDir() {
-    if (!isset($this->projectCacheDir)) {
+  public function getServerRoot() {
+    if (!isset($this->serverRoot)) {
       $dir = $this->getProjectRoot() . '/.feather';
       if (!is_dir($dir)) {
         if (!mkdir($dir)) {
@@ -112,9 +114,9 @@ class Application extends BaseApplication {
         // Nothing in this folder should be committed.
         file_put_contents($dir . "/.gitignore", "*\n");
       }
-      $this->projectCacheDir = $dir;
+      $this->serverRoot = $dir;
     }
-    return $this->projectCacheDir;
+    return $this->serverRoot;
   }
 
   /**

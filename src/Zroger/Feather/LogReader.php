@@ -2,7 +2,7 @@
 
 namespace Zroger\Feather;
 
-class ErrorLog {
+class LogReader {
   private $filename, $handle;
 
   public function __construct($filename) {

@@ -8,6 +8,7 @@
         }
     ],
     "require": {
+        "ext-posix": "*",
         "symfony/config": "*",
         "symfony/console": "*",
         "symfony/process": "*",

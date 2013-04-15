@@ -1,5 +1,10 @@
-# ServerRoot /usr
-ServerRoot {{ cache_dir }}
+ServerRoot {{ server_root }}
+ServerName localhost
+Listen {{ port }}
+
+# Relative to ServerRoot
+PidFile httpd.pid
+LockFile accept.lock
 
 {% for module, path in modules if path %}
 LoadModule {{ module }} {{ path }}
@@ -15,25 +20,32 @@ LoadModule {{ module }} {{ path }}
   </IfModule>
 </IfModule>
 
-# PidFile {{ cache_dir }}/httpd.pid
-# LockFile {{ cache_dir }}/accept.lock
-PidFile httpd.pid
-LockFile accept.lock
-
-ServerName localhost
-Listen {{ port }}
-
+#
+# Logging
+#
+# Both error logs and access logs are written to the same log file.  The log
+# file is actually a named pipe created by Feather, which parses and outputs the
+# logs to the console.
+#
 LogLevel debug
+LogFormat "%h %l %u %t \"%r\" %>s %b" common
+ErrorLog "{{ error_log }}"
+CustomLog "{{ error_log }}" common
 
-# Using tee since the error log is a fifo, which causes httpd to hang.
-ErrorLog "|/usr/bin/tee -a {{ error_log }}"
-
-# Use error_log for access logs as well so they show up in the console.
-CustomLog "|/usr/bin/tee -a {{ error_log }}" "\"%r\" %>s %b"
-
+#
+# Since this is intended for local environments, the single document root is
+# highly permissive.
+#
 DocumentRoot "{{ root }}"
 <Directory "{{ root }}">
   AllowOverride all
   Order allow,deny
   Allow from all
 </Directory>
+
+#
+# Provide applications with a hook to detect when running via feather.
+#
+<IfModule mod_env.c>
+  SetEnv FEATHER_SERVER true
+</IfModule>

@@ -18,6 +18,7 @@ class AppConfig implements ConfigurationInterface {
         ->end()
         ->scalarNode('root')->end()
         ->scalarNode('template')->end()
+        ->scalarNode('log_level')->end()
         ->arrayNode('modules')
           ->useAttributeAsKey('module')
           ->prototype('scalar')

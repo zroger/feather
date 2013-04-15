@@ -6,10 +6,10 @@ use Symfony\Component\Yaml\Yaml;
 use Symfony\Component\Config\FileLocator;
 
 class ApacheConfig {
-  protected $template, $port, $root, $cache_dir, $error_log;
+  protected $template, $port, $root, $serverRoot, $error_log;
 
-  public function __construct($cache_dir, $appConfig = array()) {
-    $this->cache_dir = $cache_dir;
+  public function __construct($serverRoot, $appConfig = array()) {
+    $this->serverRoot = $serverRoot;
     $this->appConfig = array_replace(array(
       'port' => 8080,
       'root' => posix_getcwd(),
@@ -41,13 +41,13 @@ class ApacheConfig {
     $this->root = $root;
   }
 
-  public function getCacheDir() {
-    return $this->cache_dir;
+  public function getServerRoot() {
+    return $this->serverRoot;
   }
 
   public function getErrorLog() {
     if (!isset($this->error_log)) {
-      $this->error_log = new ErrorLog($this->getCacheDir() . '/error_log');
+      $this->error_log = new LogReader($this->getServerRoot() . '/error_log');
     }
     return $this->error_log;
   }
@@ -67,12 +67,12 @@ class ApacheConfig {
     $vars = array(
       'port' => $this->getPort(),
       'root' => $this->getRoot(),
-      'cache_dir' => $this->getCacheDir(),
+      'serverRoot' => $this->getServerRoot(),
       'error_log' => $this->getErrorLog()->getFilename(),
       'modules' => $this->getModules(),
     );
     $rendered = $twig->render($this->getTemplate(), $vars);
-    $conf_file = $this->getCacheDir() . '/httpd.conf';
+    $conf_file = $this->getServerRoot() . '/httpd.conf';
     file_put_contents($conf_file, $rendered);
     return $conf_file;
   }
