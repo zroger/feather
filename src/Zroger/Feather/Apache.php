@@ -36,7 +36,12 @@ class Apache {
     $process = new Process($this->buildCommandString('start', "-e {$this->logLevel}"));
     $process->start();
     $this->wait($process);
-    return $process->isSuccessful();
+
+    if (!$process->isSuccessful()) {
+      throw new \RuntimeException(sprintf("Apache failed to start with the following error:\n%s", $process->getErrorOutput()));
+    }
+
+    return $process;
   }
 
   public function stop() {

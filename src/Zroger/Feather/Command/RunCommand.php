@@ -59,7 +59,7 @@ class RunCommand extends Command
             $cli_config['port'] = $port;
         }
         if ($root = $input->getArgument('root')) {
-            $cli_config['root'] = $root;
+            $cli_config['root'] = realpath($root);
         }
         $this->getApplication()->setConfig($cli_config);
 
@@ -74,6 +74,10 @@ class RunCommand extends Command
 
         // Open error log pipe before starting apache.
         $this->getConfig()->getErrorLog()->getHandle();
+
+        // Render the httpd.conf file.
+        // TODO: Figure out where this belongs.  Most certainly not here.
+        $this->getConfig()->toFile();
 
         $this->getApplication()->log('Starting server...', 'info');
         if (!$this->apache->start()) {
