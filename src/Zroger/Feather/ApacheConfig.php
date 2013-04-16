@@ -67,7 +67,7 @@ class ApacheConfig {
     $vars = array(
       'port' => $this->getPort(),
       'root' => $this->getRoot(),
-      'serverRoot' => $this->getServerRoot(),
+      'server_root' => $this->getServerRoot(),
       'error_log' => $this->getErrorLog()->getFilename(),
       'modules' => $this->getModules(),
     );

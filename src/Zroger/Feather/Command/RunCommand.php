@@ -69,13 +69,17 @@ class RunCommand extends Command
             pcntl_signal(SIGINT, array($this, 'shutdown'));
         }
 
-        $this->apache = new Apache($this->getApplication()->getServerRoot());
+        $appconfig = $this->getApplication()->getConfig();
+        $this->apache = new Apache($this->getApplication()->getServerRoot(), $appconfig['log_level']);
 
         // Open error log pipe before starting apache.
         $this->getConfig()->getErrorLog()->getHandle();
 
         $this->getApplication()->log('Starting server...', 'info');
-        $this->apache->start();
+        if (!$this->apache->start()) {
+            print_r($this->getApplication()->getConfig());
+            throw new \RuntimeException('Error starting server.');
+        }
         $port = $this->getConfig()->getPort();
         $this->getApplication()->log("Listening on 0.0.0.0:{$port}, CTRL+C to stop.", 'info');
         $this->getApplication()->log(sprintf('Using config file: %s', $this->getConfig()->toFile()), 'info');

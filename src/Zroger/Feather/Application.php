@@ -24,10 +24,13 @@ class Application extends BaseApplication {
     $this->loadYamlConfig(dirname(__FILE__) .'/feather.dist.yml');
 
     // Try to load config values from project-specific config file.
-    $locator = new FileLocator($this->getProjectRoot());
-    if ($yamlFile = $locator->locate('feather.yml', null, true)) {
-      $this->loadYamlConfig($yamlFile);
+    try {
+      $locator = new FileLocator($this->getProjectRoot());
+      if ($yamlFile = $locator->locate('feather.yml', null, true)) {
+        $this->loadYamlConfig($yamlFile);
+      }
     }
+    catch (\InvalidArgumentException $e) {}
   }
 
   protected function loadYamlConfig($filepath) {

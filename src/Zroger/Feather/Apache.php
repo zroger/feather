@@ -6,9 +6,10 @@ use Symfony\Component\Process\Process;
 
 class Apache {
 
-  public function __construct($feather_dir) {
+  public function __construct($feather_dir, $log_level = 'info') {
     $this->configDir = $feather_dir;
     $this->configFile = $feather_dir . '/httpd.conf';
+    $this->logLevel = $log_level;
   }
 
   protected function buildCommandString($action, $extras = '') {
@@ -32,7 +33,7 @@ class Apache {
   }
 
   public function start() {
-    $process = new Process($this->buildCommandString('start'));
+    $process = new Process($this->buildCommandString('start', "-e {$this->logLevel}"));
     $process->start();
     $this->wait($process);
     return $process->isSuccessful();
