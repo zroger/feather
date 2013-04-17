@@ -17,7 +17,7 @@ use Zroger\Feather\Config\AppConfig;
 
 class RunCommand extends Command
 {
-    private $error_log, $root;
+    protected $error_log, $root, $container;
 
     protected function configure()
     {
@@ -44,24 +44,16 @@ class RunCommand extends Command
         ;
     }
 
-    protected function getConfig() {
-        if (!isset($this->config)) {
-            $this->config = new ApacheConfig($this->getApplication()->getServerRoot(), $this->getApplication()->getConfig());
-        }
-        return $this->config;
-    }
-
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        // Collect the CLI args and options into a config array.
-        $cli_config = array();
+        $config = array();
         if ($port = $input->getOption('port')) {
-            $cli_config['port'] = $port;
+            $config['port'] = intval($port);
         }
         if ($root = $input->getArgument('root')) {
-            $cli_config['root'] = realpath($root);
+            $config['document_root'] = realpath($root);
         }
-        $this->getApplication()->setConfig($cli_config);
+        $this->container = $this->getApplication()->compileContainer($config);
 
         // catch app interruption
         if (function_exists('pcntl_signal')) {
@@ -69,27 +61,23 @@ class RunCommand extends Command
             pcntl_signal(SIGINT, array($this, 'shutdown'));
         }
 
-        $appconfig = $this->getApplication()->getConfig();
-        $this->apache = new Apache($this->getApplication()->getServerRoot(), $appconfig['log_level']);
-
         // Open error log pipe before starting apache.
-        $this->getConfig()->getErrorLog()->getHandle();
+        $logReader = $this->container->get('log_reader');
+        $logReader->getHandle();
 
-        // Render the httpd.conf file.
-        // TODO: Figure out where this belongs.  Most certainly not here.
-        $this->getConfig()->toFile();
+        $this->apache = $this->container->get('apache');
 
-        $this->getApplication()->log('Starting server...', 'info');
         if (!$this->apache->start()) {
-            print_r($this->getApplication()->getConfig());
             throw new \RuntimeException('Error starting server.');
         }
-        $port = $this->getConfig()->getPort();
-        $this->getApplication()->log("Listening on 0.0.0.0:{$port}, CTRL+C to stop.", 'info');
-        $this->getApplication()->log(sprintf('Using config file: %s', $this->getConfig()->toFile()), 'info');
+        $port = $this->apache->getPort();
+        $this->getApplication()->log("Listening on localhost:{$port}, CTRL+C to stop.", 'info');
+
+        $file = $this->apache->getConfigFile();
+        $this->getApplication()->log(sprintf('Using config file: %s', $file), 'debug');
 
         while (TRUE) {
-            while ($line = $this->getConfig()->getErrorLog()->read()) {
+            while ($line = $logReader->read()) {
                 $this->getApplication()->log($line->message, $line->type);
             }
             usleep(200);
@@ -98,7 +86,8 @@ class RunCommand extends Command
 
     public function shutdown() {
         // The extra log is to get a clean line after a ^C
-        $this->getApplication()->log('');
+        printf("\r");
+        // $this->getApplication()->log('');
         $this->getApplication()->log('Shutting down...', 'info');
         $this->apache->stop();
         $this->getApplication()->log('Server successfully stopped.', 'info');

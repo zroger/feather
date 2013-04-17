@@ -9,15 +9,12 @@
     ],
     "require": {
         "ext-posix": "*",
-        "symfony/config": "*",
-        "symfony/console": "*",
-        "symfony/process": "*",
-        "symfony/yaml": "*",
+        "symfony/config": "2.2.*",
+        "symfony/console": "2.2.*",
+        "symfony/dependency-injection": "2.2.*",
+        "symfony/process": "2.2.*",
+        "symfony/yaml": "2.2.*",
         "twig/twig": "1.*"
-    },
-    "require-dev": {
-        "symfony/finder": "*",
-        "herrera-io/box": "1.*"
     },
     "autoload": {
         "psr-0": { "Zroger\\Feather\\": "src" }
