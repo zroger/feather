@@ -22,7 +22,7 @@ use Zroger\Feather\Console\Formatter\OutputFormatter;
 class Application extends BaseApplication {
   private $logBuffer = array(), $logger;
 
-  const VERSION = "dev";
+  const VERSION = "@git_version@";
 
   public function __construct() {
     parent::__construct('Feather', self::VERSION);
