@@ -1,0 +1,60 @@
+<?php
+
+use Symfony\Component\Process\Process;
+
+$task('build', 'Test using PHPUnit', function ($input, $output) use ($go) {
+    $remote_url = '.';
+    $repo_dir = __DIR__ . '/tmp';
+    $download_dir = __DIR__ . '/downloads';
+    $manifest_file = __DIR__ . '/manifest.json';
+
+    $process = new Process(sprintf('git clone %s %s', $remote_url, $repo_dir));
+    $process->run();
+
+    $process = new Process(sprintf('git tag -l'));
+    $process->setWorkingDirectory($repo_dir)
+            ->run();
+    $tags = array_filter(explode("\n", trim($process->getOutput())));
+
+    $data = array();
+    foreach ($tags as $tag) {
+        $output->writeln("Processing <info>{$tag}</info>.");
+        $filename = "feather-{$tag}.phar";
+        $download_phar = "{$download_dir}/{$filename}";
+
+        if (file_exists($download_phar)) {
+        }
+        else {
+            $output->writeln("-- Checking out <info>{$tag}</info>.");
+            $process = new Process(sprintf('git checkout %s', $tag));
+            $process->setWorkingDirectory($repo_dir)->run();
+
+            $output->writeln("-- Updating dependencies.");
+            $process = new Process(sprintf('composer update --no-dev'));
+            $process->setWorkingDirectory($repo_dir)->run();
+
+            $output->writeln("-- Compiling phar.");
+            $process = new Process(sprintf('%s/bin/box build', __DIR__));
+            $process->setWorkingDirectory($repo_dir)->run();
+
+            if (file_exists("$repo_dir/feather.phar")) {
+                rename("{$repo_dir}/feather.phar", $download_phar);
+            }
+        }
+
+        $data[] = array(
+            "name" => "feather.phar",
+            "sha1" => sha1_file($download_phar),
+            "url" => "http://localhost:4000/downloads/{$filename}",
+            "version" => $tag,
+        );
+    }
+
+    $output->writeln("Updating <info>{$manifest_file}</info>.");
+    $jsonPretty = new Camspiers\JsonPretty\JsonPretty;
+    file_put_contents($manifest_file, $jsonPretty->prettify($data) . "\n");
+
+    $output->writeln("Cleaning up.");
+    $process = new Process(sprintf('rm -rf %s', $repo_dir));
+    $process->run();
+});

@@ -1,0 +1,19 @@
+{
+    "description": "Documentation and downloads for zroger/feather.",
+    "authors": [
+        {
+            "name": "Roger López",
+            "email": "lopez.roger@gmail.com"
+        }
+    ],
+    "require": {
+        "ext-posix": "*",
+        "camspiers/json-pretty": "0.1.*",
+        "herrera-io/go": "1.*",
+        "kherge/box": "~2.0"
+    },
+    "minimum-stability": "dev",
+    "config": {
+        "bin-dir": "bin"
+    }
+}
