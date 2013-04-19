@@ -1,11 +1,18 @@
-root: ~
-port: 8080
-log_level: info
-modules:
-  authz_host_module: mod_authz_host.so
-  dir_module:        mod_dir.so
-  env_module:        mod_env.so
-  mime_module:       mod_mime.so
-  log_config_module: mod_log_config.so
-  rewrite_module:    mod_rewrite.so
-  php5_module:       libphp5.so
+parameters:
+  feather.apache.class: "Zroger\\Feather\\Apache"
+  feather.log_reader.class: "Zroger\\Feather\\LogReader"
+
+services:
+  apache:
+    class: "%feather.apache.class%"
+    arguments: ["%feather.server_root%", "%feather.document_root%"]
+    calls:
+      - [setConfigFile, ["%feather.config_file%"]]
+      - [setPort, ["%feather.port%"]]
+      - [setLogLevel, ["%feather.log_level%"]]
+      - [setModules, ["%feather.modules%"]]
+      - [setErrorLog, ["%feather.error_log%"]]
+      - [setAccessLog, ["%feather.access_log%"]]
+  log_reader:
+    class: "%feather.log_reader.class%"
+    arguments: ["%feather.error_log%"]

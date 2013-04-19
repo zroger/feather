@@ -1,0 +1,15 @@
+{
+    "git-version": "git_version",
+    "finder": [
+        {
+            "name": ["*.php", "*.yml", "*.conf"],
+            "in": ["bin", "src", "vendor"],
+            "exclude": ["Tests", "Test", "test"]
+        }
+    ],
+    "output": "feather.phar",
+    "alias": "feather.phar",
+    "stub": true,
+    "main": "bin/feather-stub.php",
+    "chmod": "0755"
+}

@@ -40,7 +40,7 @@ class LogReader {
       }
       else {
         $line->date = null;
-        $line->type = 'access';
+        $line->type = 'info';
         $line->message = $input;
       }
       return $line;
