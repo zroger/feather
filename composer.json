@@ -14,7 +14,8 @@
         "symfony/dependency-injection": "2.2.*",
         "symfony/process": "2.2.*",
         "symfony/yaml": "2.2.*",
-        "twig/twig": "1.*"
+        "twig/twig": "1.*",
+        "herrera-io/phar-update": "1.*"
     },
     "autoload": {
         "psr-0": { "Zroger\\Feather\\": "src" }

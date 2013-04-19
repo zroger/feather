@@ -49,6 +49,7 @@ class Application extends BaseApplication {
     catch (\InvalidArgumentException $e) {}
 
     $this->add(new Command\RunCommand());
+    $this->add(new Command\SelfUpdateCommand());
   }
 
   /**
