@@ -45,7 +45,7 @@ $task('build', 'Test using PHPUnit', function ($input, $output) use ($go) {
         $data[] = array(
             "name" => "feather.phar",
             "sha1" => sha1_file($download_phar),
-            "url" => "http://localhost:4000/downloads/{$filename}",
+            "url" => "http://zroger.github.io/feather/downloads/{$filename}",
             "version" => $tag,
         );
     }
