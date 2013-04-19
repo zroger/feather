@@ -1,4 +1,5 @@
 {
+    "git-version": "git_version",
     "finder": [
         {
             "name": ["*.php", "*.yml", "*.conf"],
