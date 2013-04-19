@@ -4,5 +4,11 @@
 		"sha1": "4a229add19741ffc22e86b9177d699307327574b",
 		"url": "http:\/\/zroger.github.io\/feather\/downloads\/feather-0.1.0.phar",
 		"version": "0.1.0"
+	},
+	{
+		"name": "feather.phar",
+		"sha1": "9dfa3beec096313261581147406508eed5a39f97",
+		"url": "http:\/\/zroger.github.io\/feather\/downloads\/feather-0.1.1.phar",
+		"version": "0.1.1"
 	}
 ]
