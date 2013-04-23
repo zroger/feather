@@ -16,7 +16,7 @@ class OutputFormatter extends BaseOutputFormatter
             'error'     => new OutputFormatterStyle('red'),
             'debug'     => new OutputFormatterStyle('yellow'),
             'notice'    => new OutputFormatterStyle('yellow'),
-            'info'      => new OutputFormatterStyle('cyan'),
+            'info'      => new OutputFormatterStyle('yellow'),
         ), $styles));
     }
 }

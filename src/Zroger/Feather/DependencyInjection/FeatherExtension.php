@@ -71,6 +71,12 @@ class FeatherExtension implements ExtensionInterface
         return 'http://example.com/schema';
     }
 
+    /**
+     * Get the list of potential module directories, ordered from most preferred
+     * to least.
+     *
+     * @return array Sorted array of possible module directories.
+     */
     protected function getModuleDirectories()
     {
         if (!isset($this->moduleDirectories)) {
@@ -82,6 +88,12 @@ class FeatherExtension implements ExtensionInterface
                     $dirs[] = $php_dir . '/libexec/apache2';
                 }
             }
+
+            // CentOS
+            $dirs[] = '/usr/lib64/httpd/modules/';
+
+            // Ubuntu
+            $dirs[] = '/usr/lib/apache2/modules';
 
             // osx default apache.
             $dirs[] = '/usr/libexec/apache2';

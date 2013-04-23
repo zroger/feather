@@ -22,7 +22,7 @@ class AppConfig implements ConfigurationInterface {
           ->defaultValue('%feather.server_root%/error_log')
         ->end()
         ->scalarNode('access_log')
-          ->defaultValue('%feather.error_log%')
+          ->defaultValue('%feather.server_root%/access_log')
         ->end()
         ->integerNode('port')
           ->defaultValue(8080)

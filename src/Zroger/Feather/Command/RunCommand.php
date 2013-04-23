@@ -14,6 +14,9 @@ use Symfony\Component\Process\Process;
 use Symfony\Component\Yaml\Yaml;
 use Symfony\Component\Config\Definition\Processor;
 use Zroger\Feather\Config\AppConfig;
+use Zroger\Feather\Log\Watcher;
+use Zroger\Feather\Log\PipeReader;
+use Zroger\Feather\Log\FileReader;
 
 class RunCommand extends Command
 {
@@ -61,10 +64,6 @@ class RunCommand extends Command
             pcntl_signal(SIGINT, array($this, 'shutdown'));
         }
 
-        // Open error log pipe before starting apache.
-        $logReader = $this->container->get('log_reader');
-        $logReader->getHandle();
-
         $this->apache = $this->container->get('apache');
 
         if (!$this->apache->start()) {
@@ -76,12 +75,10 @@ class RunCommand extends Command
         $file = $this->apache->getConfigFile();
         $this->getApplication()->log(sprintf('Using config file: %s', $file), 'debug');
 
-        while (TRUE) {
-            while ($line = $logReader->read()) {
-                $this->getApplication()->log($line->message, $line->type);
-            }
-            usleep(200);
-        }
+        $app = $this->getApplication();
+        $this->container->get('log_watcher')->watch(function($label, $line) use ($app) {
+            $app->log($line->getMessage(), $line->getLevel());
+        });
     }
 
     public function shutdown() {
