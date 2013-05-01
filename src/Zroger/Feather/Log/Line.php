@@ -4,30 +4,30 @@ namespace Zroger\Feather\Log;
 
 class Line
 {
-  /**
-   * The log message.
-   * @var string
-   */
-  protected $message;
+    /**
+     * The log message.
+     * @var string
+     */
+    protected $message;
 
-  /**
-   * The timestamp of the message.
-   * @var int
-   */
-  protected $timestamp;
+    /**
+     * The timestamp of the message.
+     * @var int
+     */
+    protected $timestamp;
 
-  /**
-   * Log level of the message.
-   * @var string
-   */
-  protected $level;
+    /**
+     * Log level of the message.
+     * @var string
+     */
+    protected $level;
 
-  public function __construct($message, $timestamp = NULL, $level = NULL)
-  {
-      $this->message = $message;
-      $this->timestamp = $timestamp ?: time();
-      $this->level = $level ?: 'info';
-  }
+    public function __construct($message, $timestamp = null, $level = null)
+    {
+        $this->message = $message;
+        $this->timestamp = $timestamp ?: time();
+        $this->level = $level ?: 'info';
+    }
 
     /**
      * Gets the The log message..

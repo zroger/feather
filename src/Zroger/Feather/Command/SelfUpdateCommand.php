@@ -17,8 +17,7 @@ class SelfUpdateCommand extends Command
     {
         $this
             ->setName('self-update')
-            ->setDescription('Update to the latest version of Feather.')
-        ;
+            ->setDescription('Update to the latest version of Feather.');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -29,13 +28,13 @@ class SelfUpdateCommand extends Command
         $version = $this->getApplication()->getVersion();
         if ($update = $manager->update($version, true)) {
             $output->writeln(sprintf('<info>Updated to version %s</info>', $update->getVersion()));
-        }
-        else {
+        } else {
             $output->writeln("<notice>No updates found.</notice>");
         }
     }
 
-    public function isEnabled() {
+    public function isEnabled()
+    {
         $phar_file = \Phar::running();
         return !empty($phar_file);
     }

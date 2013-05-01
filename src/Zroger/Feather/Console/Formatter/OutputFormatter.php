@@ -2,8 +2,8 @@
 
 namespace Zroger\Feather\Console\Formatter;
 
-use Symfony\Component\Console\Formatter\OutputFormatter as BaseOutputFormatter,
-    Symfony\Component\Console\Formatter\OutputFormatterStyle;
+use Symfony\Component\Console\Formatter\OutputFormatter as BaseOutputFormatter;
+use Symfony\Component\Console\Formatter\OutputFormatterStyle;
 
 class OutputFormatter extends BaseOutputFormatter
 {
@@ -12,11 +12,17 @@ class OutputFormatter extends BaseOutputFormatter
      */
     public function __construct($decorated = null, array $styles = array())
     {
-        parent::__construct($decorated, array_merge(array(
-            'error'     => new OutputFormatterStyle('red'),
-            'debug'     => new OutputFormatterStyle('yellow'),
-            'notice'    => new OutputFormatterStyle('yellow'),
-            'info'      => new OutputFormatterStyle('yellow'),
-        ), $styles));
+        parent::__construct(
+            $decorated,
+            array_merge(
+                array(
+                    'error'     => new OutputFormatterStyle('red'),
+                    'debug'     => new OutputFormatterStyle('yellow'),
+                    'notice'    => new OutputFormatterStyle('yellow'),
+                    'info'      => new OutputFormatterStyle('yellow'),
+                ),
+                $styles
+            )
+        );
     }
 }

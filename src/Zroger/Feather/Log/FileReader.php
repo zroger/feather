@@ -36,8 +36,7 @@ class FileReader implements LogReaderInterface
     {
         // Always seek back to the cursor to reset eof();
         $this->getFile()->fseek($this->cursor);
-        if (!$this->getFile()->eof())
-        {
+        if (!$this->getFile()->eof()) {
             if ($text = $this->getFile()->fgets()) {
                 $this->cursor = $this->getFile()->ftell();
                 return $this->parse($text);
@@ -67,8 +66,7 @@ class FileReader implements LogReaderInterface
      */
     protected function getFile()
     {
-        if (!isset($this->file))
-        {
+        if (!isset($this->file)) {
             $this->file = new \SplFileObject($this->path, 'r');
             $this->file->fseek(0, SEEK_END);
             $this->cursor = $this->file->ftell();
@@ -88,8 +86,7 @@ class FileReader implements LogReaderInterface
         $input = trim($input);
         if (preg_match($rx, $input, $matches)) {
             return new Line($matches[3], $matches[1], $matches[2]);
-        }
-        else {
+        } else {
             return new Line($input, null, 'info');
         }
     }

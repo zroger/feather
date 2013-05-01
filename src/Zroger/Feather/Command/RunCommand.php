@@ -20,7 +20,9 @@ use Zroger\Feather\Log\FileReader;
 
 class RunCommand extends Command
 {
-    protected $error_log, $root, $container;
+    protected $error_log;
+    protected $root;
+    protected $container;
 
     protected function configure()
     {
@@ -43,8 +45,7 @@ class RunCommand extends Command
                 null,
                 InputOption::VALUE_REQUIRED,
                 'Start the server on a specific port.'
-            )
-        ;
+            );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -76,12 +77,15 @@ class RunCommand extends Command
         $this->getApplication()->log(sprintf('Using config file: %s', $file), 'debug');
 
         $app = $this->getApplication();
-        $this->container->get('log_watcher')->watch(function($label, $line) use ($app) {
-            $app->log($line->getMessage(), $line->getLevel());
-        });
+        $this->container->get('log_watcher')->watch(
+            function ($label, $line) use ($app) {
+                $app->log($line->getMessage(), $line->getLevel());
+            }
+        );
     }
 
-    public function shutdown() {
+    public function shutdown()
+    {
         // The extra log is to get a clean line after a ^C
         printf("\r");
         // $this->getApplication()->log('');

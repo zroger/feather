@@ -30,7 +30,7 @@ class UpdateManager extends Manager
             $version,
             $major,
             $pre
-        ))){
+        ))) {
             $update->getFile();
             $update->copyTo($this->getRunningFile());
 
@@ -40,4 +40,3 @@ class UpdateManager extends Manager
         return false;
     }
 }
-

@@ -35,7 +35,7 @@ class FeatherExtension implements ExtensionInterface
         $config = $processor->processConfiguration($configuration, $configs);
 
         foreach ($config as $key => $value) {
-          $container->setParameter(join('.', array($this->getAlias(), $key)), $value);
+            $container->setParameter(join('.', array($this->getAlias(), $key)), $value);
         }
 
         // Resolve module filenames to full paths.
@@ -102,5 +102,4 @@ class FeatherExtension implements ExtensionInterface
         }
         return $this->moduleDirectories;
     }
-
 }

@@ -10,8 +10,6 @@ class Watcher
      */
     protected $readers = array();
 
-    public function __construct() {}
-
     /**
      * Add a reader to the watchlist.
      *
@@ -45,17 +43,13 @@ class Watcher
      */
     public function watch($callable, $uinterval = 200000)
     {
-        if (empty($this->readers))
-        {
+        if (empty($this->readers)) {
             throw new \RuntimeException('The watchlist is empty, nothing to watch.');
         }
 
-        while (true)
-        {
-            foreach ($this->readers as $label => $reader)
-            {
-                foreach ($reader->allLines() as $line)
-                {
+        while (true) {
+            foreach ($this->readers as $label => $reader) {
+                foreach ($reader->allLines() as $line) {
                     $callable($label, $line);
                 }
             }

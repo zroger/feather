@@ -68,61 +68,70 @@ class Apache
         $this->accessLog = $serverRoot . '/access_log';
     }
 
-  protected function buildCommandString($action, $extras = '') {
-    return sprintf('httpd -f "%s" -k "%s" %s', $this->getConfigFile(), $action, $extras);
-  }
-
-  /**
-   * For some reason, starting httpd hangs while using $process->wait.  This is
-   * just a much simplified version.
-   */
-  protected function wait($process, $timeout = 30) {
-    $timeout = time() + 30;
-    while ($process->isRunning()) {
-      if (time() >= $timeout) {
-        throw \RuntimeException('timeout');
-      }
-      usleep(200);
+    protected function buildCommandString($action, $extras = '')
+    {
+        return sprintf('httpd -f "%s" -k "%s" %s', $this->getConfigFile(), $action, $extras);
     }
 
-    return;
-  }
+    /**
+     * For some reason, starting httpd hangs while using $process->wait.  This is
+     * just a much simplified version.
+     */
+    protected function wait($process, $timeout = 30)
+    {
+        $timeout = time() + 30;
+        while ($process->isRunning()) {
+            if (time() >= $timeout) {
+                throw \RuntimeException('timeout');
+            }
+            usleep(200);
+        }
 
-  public function start() {
-    $this->renderConfigFile();
-
-    $process = new Process($this->buildCommandString('start', "-e {$this->logLevel}"));
-    $process->start();
-    $this->wait($process);
-
-    if (!$process->isSuccessful()) {
-      throw new \RuntimeException(sprintf("Apache failed to start using the following command:\n%s\n%s",
-        $process->getCommandLine(),
-        $process->getErrorOutput()));
+        return;
     }
 
-    return $process;
-  }
+    public function start()
+    {
+        $this->renderConfigFile();
 
-  public function stop() {
-    $process = new Process($this->buildCommandString('stop'));
-    $process->start();
-    $process->wait();
-    return $process->isSuccessful();
-  }
+        $process = new Process($this->buildCommandString('start', "-e {$this->logLevel}"));
+        $process->start();
+        $this->wait($process);
 
-  public function isRunning() {
-    $pidfile = $this->configDir . '/httpd.pid';
-    if (file_exists($pidfile) && ($pid = file_get_contents($pidfile))) {
-      $pid = trim($pid);
-      $lockfile = $this->configDir . '/accept.lock.'. $pid;
-      if (file_exists($lockfile)) {
-        return true;
-      }
+        if (!$process->isSuccessful()) {
+            throw new \RuntimeException(
+                sprintf(
+                    "Apache failed to start using the following command:\n%s\n%s",
+                    $process->getCommandLine(),
+                    $process->getErrorOutput()
+                )
+            );
+        }
+
+        return $process;
     }
 
-    return false;
-  }
+    public function stop()
+    {
+        $process = new Process($this->buildCommandString('stop'));
+        $process->start();
+        $process->wait();
+        return $process->isSuccessful();
+    }
+
+    public function isRunning()
+    {
+        $pidfile = $this->configDir . '/httpd.pid';
+        if (file_exists($pidfile) && ($pid = file_get_contents($pidfile))) {
+            $pid = trim($pid);
+            $lockfile = $this->configDir . '/accept.lock.'. $pid;
+            if (file_exists($lockfile)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 
     /**
      * Gets the Path to the directory to be used as the server root..
@@ -316,7 +325,8 @@ class Apache
         return $this;
     }
 
-    protected function asTemplateVars() {
+    protected function asTemplateVars()
+    {
         return array(
             'server_root' => $this->getServerRoot(),
             'config_file' => $this->getConfigFile(),
@@ -329,7 +339,8 @@ class Apache
         );
     }
 
-    protected function renderConfigFile() {
+    protected function renderConfigFile()
+    {
         $this->verifyServerRoot();
 
         $loader = new \Twig_Loader_Filesystem(__DIR__ . "/templates");
@@ -342,14 +353,15 @@ class Apache
         return $this;
     }
 
-    protected function verifyServerRoot() {
+    protected function verifyServerRoot()
+    {
         $dir = $this->getServerRoot();
         if (!is_dir($dir)) {
-          if (!mkdir($dir)) {
-            throw new \RuntimeException("Unable to create cache directory {$dir}");
-          }
-          // Nothing in this folder should be committed.
-          file_put_contents($dir . "/.gitignore", "*\n");
+            if (!mkdir($dir)) {
+                throw new \RuntimeException("Unable to create cache directory {$dir}");
+            }
+            // Nothing in this folder should be committed.
+            file_put_contents($dir . "/.gitignore", "*\n");
         }
         return $this;
     }
