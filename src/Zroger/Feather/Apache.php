@@ -79,7 +79,7 @@ class Apache
      */
     protected function wait($process, $timeout = 30)
     {
-        $timeout = time() + 30;
+        $timeout += time();
         while ($process->isRunning()) {
             if (time() >= $timeout) {
                 throw \RuntimeException('timeout');
