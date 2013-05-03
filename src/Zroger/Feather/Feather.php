@@ -4,7 +4,7 @@ namespace Zroger\Feather;
 
 use Symfony\Component\Process\Process;
 
-class Apache
+class Feather
 {
     /**
      * Path to the directory to be used as the server root.
@@ -54,6 +54,13 @@ class Apache
      */
     protected $accessLog;
 
+
+    /**
+     * Filename of the template to be used for rendering the httpd.conf.
+     * @var string
+     */
+    protected $template;
+
     public function __construct($serverRoot, $documentRoot)
     {
         $this->serverRoot = $serverRoot;
@@ -66,6 +73,7 @@ class Apache
         $this->modules = array();
         $this->errorLog = $serverRoot . '/error_log';
         $this->accessLog = $serverRoot . '/access_log';
+        $this->template = 'default.conf';
     }
 
     protected function buildCommandString($action, $extras = '')
@@ -73,30 +81,12 @@ class Apache
         return sprintf('httpd -f "%s" -k "%s" %s', $this->getConfigFile(), $action, $extras);
     }
 
-    /**
-     * For some reason, starting httpd hangs while using $process->wait.  This is
-     * just a much simplified version.
-     */
-    protected function wait($process, $timeout = 30)
-    {
-        $timeout += time();
-        while ($process->isRunning()) {
-            if (time() >= $timeout) {
-                throw \RuntimeException('timeout');
-            }
-            usleep(200);
-        }
-
-        return;
-    }
-
     public function start()
     {
         $this->renderConfigFile();
 
         $process = new Process($this->buildCommandString('start', "-e {$this->logLevel}"));
-        $process->start();
-        $this->wait($process);
+        $process->run();
 
         if (!$process->isSuccessful()) {
             throw new \RuntimeException(
@@ -114,8 +104,7 @@ class Apache
     public function stop()
     {
         $process = new Process($this->buildCommandString('stop'));
-        $process->start();
-        $process->wait();
+        $process->run();
         return $process->isSuccessful();
     }
 
@@ -355,7 +344,7 @@ class Apache
         $loader = new \Twig_Loader_Filesystem(__DIR__ . "/templates");
         $twig = new \Twig_Environment($loader, array('autoescape' => false));
 
-        $rendered = $twig->render('default.conf', $this->asTemplateVars());
+        $rendered = $twig->render($this->getTemplate(), $this->asTemplateVars());
         if (file_put_contents($this->getConfigFile(), $rendered) === false) {
             throw new \RuntimeException(sprintf('Error rendering config file to %s.', $this->getConfigFile()));
         }
@@ -372,6 +361,30 @@ class Apache
             // Nothing in this folder should be committed.
             file_put_contents($dir . "/.gitignore", "*\n");
         }
+        return $this;
+    }
+
+    /**
+     * Gets the Filename of the template to be used for rendering the httpd.conf..
+     *
+     * @return string
+     */
+    public function getTemplate()
+    {
+        return $this->template;
+    }
+
+    /**
+     * Sets the Filename of the template to be used for rendering the httpd.conf..
+     *
+     * @param string $template the template
+     *
+     * @return self
+     */
+    public function setTemplate($template)
+    {
+        $this->template = $template;
+
         return $this;
     }
 }

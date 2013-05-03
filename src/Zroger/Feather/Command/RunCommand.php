@@ -50,7 +50,7 @@ class RunCommand extends Command
             pcntl_signal(SIGINT, array($this, 'shutdown'));
         }
 
-        $this->apache = $this->getApplication()->getContainer()->get('apache');
+        $this->apache = $this->getApplication()->getContainer()->get('feather');
 
         if (!$this->apache->start()) {
             throw new \RuntimeException('Error starting server.');
@@ -75,9 +75,13 @@ class RunCommand extends Command
         printf("\r");
         // $this->getApplication()->log('');
         $this->getApplication()->log('Shutting down...', 'info');
-        $this->apache->stop();
-        $this->getApplication()->log('Server successfully stopped.', 'info');
+        if ($this->apache->stop()) {
+            $this->getApplication()->log('Server successfully stopped.', 'info');
+            exit();
+        } else {
+            $this->getApplication()->log('Error stopping server.', 'error');
+            exit(1);
+        }
 
-        exit();
     }
 }

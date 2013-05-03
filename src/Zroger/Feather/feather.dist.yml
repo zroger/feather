@@ -1,10 +1,10 @@
 parameters:
-  feather.apache.class: "Zroger\\Feather\\Apache"
+  feather.class: "Zroger\\Feather\\Feather"
   feather.log_reader.class: "Zroger\\Feather\\LogReader"
 
 services:
-  apache:
-    class: "%feather.apache.class%"
+  feather:
+    class: "%feather.class%"
     arguments: ["%feather.server_root%", "%feather.document_root%"]
     calls:
       - [setConfigFile, ["%feather.config_file%"]]
