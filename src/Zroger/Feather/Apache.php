@@ -121,13 +121,10 @@ class Apache
 
     public function isRunning()
     {
-        $pidfile = $this->configDir . '/httpd.pid';
-        if (file_exists($pidfile) && ($pid = file_get_contents($pidfile))) {
-            $pid = trim($pid);
-            $lockfile = $this->configDir . '/accept.lock.'. $pid;
-            if (file_exists($lockfile)) {
-                return true;
-            }
+        if ($pid = $this->getPid()) {
+            $process = new Process(sprintf('ps -p "%s"', $pid));
+            $process->run();
+            return $process->isSuccessful();
         }
 
         return false;
@@ -323,6 +320,18 @@ class Apache
         $this->accessLog = $accessLog;
 
         return $this;
+    }
+
+    /**
+     * Get the Process ID of the parent httpd process.
+     */
+    public function getPid()
+    {
+        $pidfile = $this->configDir . '/httpd.pid';
+        if (file_exists($pidfile) && ($pid = file_get_contents($pidfile))) {
+            return $pid;
+        }
+        return false;
     }
 
     protected function asTemplateVars()
