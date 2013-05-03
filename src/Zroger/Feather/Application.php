@@ -6,6 +6,7 @@ use Symfony\Component\Console\Application as BaseApplication;
 use Symfony\Component\Console\Formatter\OutputFormatterStyle;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\ArgvInput;
+use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\ConsoleOutput;
 use Symfony\Component\Console\Output\OutputInterface;
 use Symfony\Component\Config\Definition\Processor;
@@ -26,6 +27,8 @@ class Application extends BaseApplication
     private $logBuffer = array();
     private $logger;
 
+    protected $runningCommand;
+
     const VERSION = "@git_version@";
 
     public function __construct()
@@ -35,6 +38,10 @@ class Application extends BaseApplication
         $this->add(new Command\SelfUpdateCommand());
     }
 
+    /**
+     * Get the DI container instance.
+     * @return ContainerInterface The DI container instance.
+     */
     public function getContainer()
     {
         if (!isset($this->container)) {
@@ -131,6 +138,30 @@ class Application extends BaseApplication
     }
 
     /**
+     * Runs the current application.
+     *
+     * @param InputInterface  $input  An Input instance
+     * @param OutputInterface $output An Output instance
+     *
+     * @return integer 0 if everything went fine, or an error code
+     */
+    public function doRun(InputInterface $input, OutputInterface $output)
+    {
+        // Compile container here before commands are run.
+        $config = array();
+        if ($port = $input->getParameterOption(array('--port', '-p'))) {
+            $config['port'] = intval($port);
+        }
+        if ($port = $input->getParameterOption(array('--root', '-r'))) {
+            $config['document_root'] = realpath($root);
+        }
+        $this->compileContainer($config);
+
+        parent::doRun($input, $output);
+    }
+
+
+    /**
      * Rudimentary logger.
      */
     public function log($message, $level = "info")
@@ -144,5 +175,22 @@ class Application extends BaseApplication
                 $this->logger->writeln($line);
             }
         }
+    }
+
+    /**
+     * Gets the default input definition.
+     *
+     * @return InputDefinition An InputDefinition instance
+     */
+    protected function getDefaultInputDefinition()
+    {
+        $definition = parent::getDefaultInputDefinition();
+        $definition->addOptions(
+            array(
+                new InputOption('--port', '-p', InputOption::VALUE_REQUIRED, 'Specify the port to listen on.'),
+                new InputOption('--root', '-r', InputOption::VALUE_REQUIRED, 'Specify the document root to use.'),
+            )
+        );
+        return $definition;
     }
 }

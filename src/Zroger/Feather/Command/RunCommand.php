@@ -39,33 +39,18 @@ class RunCommand extends Command
                 null,
                 InputOption::VALUE_REQUIRED,
                 'Specify a config file.'
-            )
-            ->addOption(
-                'port',
-                null,
-                InputOption::VALUE_REQUIRED,
-                'Start the server on a specific port.'
             );
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $config = array();
-        if ($port = $input->getOption('port')) {
-            $config['port'] = intval($port);
-        }
-        if ($root = $input->getArgument('root')) {
-            $config['document_root'] = realpath($root);
-        }
-        $this->container = $this->getApplication()->compileContainer($config);
-
         // catch app interruption
         if (function_exists('pcntl_signal')) {
             declare(ticks = 1);
             pcntl_signal(SIGINT, array($this, 'shutdown'));
         }
 
-        $this->apache = $this->container->get('apache');
+        $this->apache = $this->getApplication()->getContainer()->get('apache');
 
         if (!$this->apache->start()) {
             throw new \RuntimeException('Error starting server.');
@@ -77,7 +62,7 @@ class RunCommand extends Command
         $this->getApplication()->log(sprintf('Using config file: %s', $file), 'debug');
 
         $app = $this->getApplication();
-        $this->container->get('log_watcher')->watch(
+        $this->getApplication()->getContainer()->get('log_watcher')->watch(
             function ($label, $line) use ($app) {
                 $app->log($line->getMessage(), $line->getLevel());
             }
