@@ -152,7 +152,7 @@ class Application extends BaseApplication
         if ($port = $input->getParameterOption(array('--port', '-p'))) {
             $config['port'] = intval($port);
         }
-        if ($port = $input->getParameterOption(array('--root', '-r'))) {
+        if ($root = $input->getParameterOption(array('--root', '-r'))) {
             $config['document_root'] = realpath($root);
         }
         $this->compileContainer($config);
