@@ -7,6 +7,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
+use Zroger\Feather\Log\FileReader;
 
 class RunCommand extends Command
 {
@@ -39,11 +40,14 @@ class RunCommand extends Command
         $feather = $this->get('feather');
         $feather->start();
 
-        $this->get('log_watcher')->watch(
-            function ($label, $line) use ($feather) {
-                $feather->getLogger()->log($line->getLevel(), $line->getMessage());
-            }
-        );
+        $this->get('log_watcher')
+            ->addReader('error_log', new FileReader($feather->getErrorLog()))
+            ->addReader('access_log', new FileReader($feather->getAccessLog()))
+            ->watch(
+                function ($label, $line) use ($feather) {
+                    $feather->getLogger()->log($line->getLevel(), $line->getMessage());
+                }
+            );
     }
 
     public function shutdown($signal)

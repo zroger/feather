@@ -15,12 +15,6 @@ class Feather
     protected $serverRoot;
 
     /**
-     * Path to the httpd.conf file.
-     * @var string
-     */
-    protected $configFile;
-
-    /**
      * Path to the document root.
      * @var string
      */
@@ -45,18 +39,6 @@ class Feather
     protected $modules;
 
     /**
-     * File path to the error log.
-     * @var string
-     */
-    protected $errorLog;
-
-    /**
-     * File path to the access log.
-     * @var string
-     */
-    protected $accessLog;
-
-    /**
      * Filename of the template to be used for rendering the httpd.conf.
      * @var string
      */
@@ -78,17 +60,14 @@ class Feather
     {
         $this->serverRoot = $serverRoot;
         $this->documentRoot = $documentRoot;
+        $this->logger = $logger;
 
         // Default values.
         $this->configFile = $serverRoot . '/httpd.conf';
         $this->port = 80;
         $this->logLevel = 'info';
         $this->modules = array();
-        $this->errorLog = $serverRoot . '/error_log';
-        $this->accessLog = $serverRoot . '/access_log';
         $this->template = 'default.conf';
-
-        $this->logger = $logger;
     }
 
     public function start()
@@ -182,21 +161,7 @@ class Feather
      */
     public function getConfigFile()
     {
-        return $this->configFile;
-    }
-
-    /**
-     * Sets the Path to the httpd.conf file..
-     *
-     * @param string $configFile the configFile
-     *
-     * @return self
-     */
-    public function setConfigFile($configFile)
-    {
-        $this->configFile = $configFile;
-
-        return $this;
+        return $this->getServerRoot() . '/httpd.conf';
     }
 
     /**
@@ -302,21 +267,7 @@ class Feather
      */
     public function getErrorLog()
     {
-        return $this->errorLog;
-    }
-
-    /**
-     * Sets the File path to the error log..
-     *
-     * @param string $errorLog the errorLog
-     *
-     * @return self
-     */
-    public function setErrorLog($errorLog)
-    {
-        $this->errorLog = $errorLog;
-
-        return $this;
+        return $this->getServerRoot() . '/error_log';
     }
 
     /**
@@ -326,21 +277,7 @@ class Feather
      */
     public function getAccessLog()
     {
-        return $this->accessLog;
-    }
-
-    /**
-     * Sets the File path to the access log..
-     *
-     * @param string $accessLog the accessLog
-     *
-     * @return self
-     */
-    public function setAccessLog($accessLog)
-    {
-        $this->accessLog = $accessLog;
-
-        return $this;
+        return $this->getServerRoot() . '/access_log';
     }
 
     /**
