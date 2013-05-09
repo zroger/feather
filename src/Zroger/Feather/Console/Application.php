@@ -25,7 +25,6 @@ use Zroger\Feather\DependencyInjection\FeatherYamlFileLoader;
 class Application extends BaseApplication
 {
     private $logBuffer = array();
-    private $logger;
 
     protected $runningCommand;
 
@@ -132,8 +131,6 @@ class Application extends BaseApplication
             $output->setFormatter(new OutputFormatter($output->isDecorated()));
         }
 
-        $this->logger = $output;
-
         return parent::run($input, $output);
     }
 
@@ -158,23 +155,6 @@ class Application extends BaseApplication
         $this->compileContainer($config);
 
         parent::doRun($input, $output);
-    }
-
-
-    /**
-     * Rudimentary logger.
-     */
-    public function log($message, $level = "info")
-    {
-        $this->logBuffer[] = array('message' => $message, 'level' => $level);
-
-        if (isset($this->logger)) {
-            $formatter = $this->getHelperSet()->get('formatter');
-            while ($log = array_shift($this->logBuffer)) {
-                $line = $formatter->formatSection($log['level'], $log['message'], $log['level']);
-                $this->logger->writeln($line);
-            }
-        }
     }
 
     /**

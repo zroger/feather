@@ -4,6 +4,7 @@ namespace Zroger\Feather;
 
 use Symfony\Component\Process\ProcessBuilder;
 use Symfony\Component\Process\ExecutableFinder;
+use Psr\Log\LoggerInterface;
 
 class Feather
 {
@@ -67,7 +68,13 @@ class Feather
      */
     protected $executable;
 
-    public function __construct($serverRoot, $documentRoot)
+    /**
+     * PSR3 Logger.
+     * @var LoggerInterface
+     */
+    protected $logger;
+
+    public function __construct($serverRoot, $documentRoot, LoggerInterface $logger)
     {
         $this->serverRoot = $serverRoot;
         $this->documentRoot = $documentRoot;
@@ -80,6 +87,8 @@ class Feather
         $this->errorLog = $serverRoot . '/error_log';
         $this->accessLog = $serverRoot . '/access_log';
         $this->template = 'default.conf';
+
+        $this->logger = $logger;
     }
 
     public function start()
@@ -410,6 +419,15 @@ class Feather
         return $builder->getProcess();
     }
 
+    /**
+     * Gets the PSR3 Logger..
+     *
+     * @return LoggerInterface
+     */
+    public function getLogger()
+    {
+        return $this->logger;
+    }
 
     protected function asTemplateVars()
     {

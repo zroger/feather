@@ -1,11 +1,12 @@
 parameters:
   feather.class: "Zroger\\Feather\\Feather"
   feather.log_reader.class: "Zroger\\Feather\\LogReader"
+  feather.logger.class: "Zroger\\Feather\\Log\\ConsoleLogger"
 
 services:
   feather:
     class: "%feather.class%"
-    arguments: ["%feather.server_root%", "%feather.document_root%"]
+    arguments: ["%feather.server_root%", "%feather.document_root%", "@feather_logger"]
     calls:
       - [setConfigFile, ["%feather.config_file%"]]
       - [setPort, ["%feather.port%"]]
@@ -24,3 +25,5 @@ services:
     calls:
       - [addReader, ["error_log", "@error_log_reader"]]
       - [addReader, ["access_log", "@access_log_reader"]]
+  feather_logger:
+    class: "%feather.logger.class%"

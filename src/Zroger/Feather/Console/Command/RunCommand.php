@@ -42,15 +42,14 @@ class RunCommand extends Command
             throw new \RuntimeException('Error starting server.');
         }
         $port = $feather->getPort();
-        $this->getApplication()->log("Listening on localhost:{$port}, CTRL+C to stop.", 'info');
+        $feather->getLogger()->info("Listening on localhost:{$port}, CTRL+C to stop.");
 
-        $file = $this->apache->getConfigFile();
-        $this->getApplication()->log(sprintf('Using config file: %s', $file), 'debug');
+        $file = $feather->getConfigFile();
+        $feather->getLogger()->debug(sprintf('Using config file: %s', $file));
 
-        $app = $this->getApplication();
         $this->getApplication()->getContainer()->get('log_watcher')->watch(
-            function ($label, $line) use ($app) {
-                $app->log($line->getMessage(), $line->getLevel());
+            function ($label, $line) use ($feather) {
+                $feather->getLogger()->log($line->getLevel(), $line->getMessage());
             }
         );
     }
@@ -59,14 +58,15 @@ class RunCommand extends Command
     {
         // The extra log is to get a clean line after a ^C
         printf("\r");
-        $this->getApplication()->log('Shutting down...', 'info');
-
         $feather = $this->getApplication()->getContainer()->get('feather');
+
+        $feather->getLogger()->info('Shutting down...');
+
         if ($feather->stop()) {
-            $this->getApplication()->log('Server successfully stopped.', 'info');
+            $feather->getLogger()->info('Server successfully stopped.');
             exit();
         } else {
-            $this->getApplication()->log('Error stopping server.', 'error');
+            $feather->getLogger()->error('Error stopping server.');
             exit(1);
         }
     }
