@@ -5,7 +5,7 @@
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use Zroger\Feather\Application;
+use Zroger\Feather\Console\Application;
 
 $app = new Application();
 $app->run();

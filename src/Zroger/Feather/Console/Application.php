@@ -1,6 +1,6 @@
 <?php
 
-namespace Zroger\Feather;
+namespace Zroger\Feather\Console;
 
 use Symfony\Component\Console\Application as BaseApplication;
 use Symfony\Component\Console\Formatter\OutputFormatterStyle;
@@ -49,7 +49,7 @@ class Application extends BaseApplication
             $container->registerExtension(new FeatherExtension($this->getBasePath()));
 
             // Static defaults.
-            $loader = new YamlFileLoader($container, new FileLocator(__DIR__));
+            $loader = new YamlFileLoader($container, new FileLocator(dirname(__DIR__)));
             $loader->load('feather.dist.yml');
 
             // Try to load config values from project-specific config file.

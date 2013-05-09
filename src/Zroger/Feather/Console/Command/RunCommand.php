@@ -1,6 +1,6 @@
 <?php
 
-namespace Zroger\Feather\Command;
+namespace Zroger\Feather\Console\Command;
 
 use Zroger\Feather\Apache;
 use Zroger\Feather\ApacheConfig;
