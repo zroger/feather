@@ -82,26 +82,6 @@ class Feather
         $this->template = 'default.conf';
     }
 
-    /**
-     * Get an apache process ready to run.
-     *
-     * @param  string $action The action to pass with -k, usually start or stop.
-     * @param  array  $extras Array of additional arguments.
-     * @return Symfony\Component\Process An instantiated process object.
-     */
-    protected function getProcess($action, $extras = array())
-    {
-        $builder = ProcessBuilder::create(array($this->getExecutable()))
-            ->add('-f')->add($this->getConfigFile())
-            ->add('-k')->add($action);
-
-        foreach ($extras as $extra) {
-            $builder->add($extra);
-        }
-
-        return $builder->getProcess();
-    }
-
     public function start()
     {
         $this->renderConfigFile();
@@ -344,47 +324,6 @@ class Feather
         return false;
     }
 
-    protected function asTemplateVars()
-    {
-        return array(
-            'server_root' => $this->getServerRoot(),
-            'config_file' => $this->getConfigFile(),
-            'document_root' => $this->getDocumentRoot(),
-            'port' => $this->getPort(),
-            'log_level' => $this->getLogLevel(),
-            'modules' => $this->getModules(),
-            'error_log' => $this->getErrorLog(),
-            'access_log' => $this->getAccessLog(),
-        );
-    }
-
-    protected function renderConfigFile()
-    {
-        $this->verifyServerRoot();
-
-        $loader = new \Twig_Loader_Filesystem(__DIR__ . "/templates");
-        $twig = new \Twig_Environment($loader, array('autoescape' => false));
-
-        $rendered = $twig->render($this->getTemplate(), $this->asTemplateVars());
-        if (file_put_contents($this->getConfigFile(), $rendered) === false) {
-            throw new \RuntimeException(sprintf('Error rendering config file to %s.', $this->getConfigFile()));
-        }
-        return $this;
-    }
-
-    protected function verifyServerRoot()
-    {
-        $dir = $this->getServerRoot();
-        if (!is_dir($dir)) {
-            if (!mkdir($dir)) {
-                throw new \RuntimeException("Unable to create cache directory {$dir}");
-            }
-            // Nothing in this folder should be committed.
-            file_put_contents($dir . "/.gitignore", "*\n");
-        }
-        return $this;
-    }
-
     /**
      * Gets the filename of the template to be used for rendering the httpd.conf.
      *
@@ -448,6 +387,68 @@ class Feather
     {
         $this->executable = $executable;
 
+        return $this;
+    }
+
+    /**
+     * Get an apache process ready to run.
+     *
+     * @param  string $action The action to pass with -k, usually start or stop.
+     * @param  array  $extras Array of additional arguments.
+     * @return Symfony\Component\Process An instantiated process object.
+     */
+    protected function getProcess($action, $extras = array())
+    {
+        $builder = ProcessBuilder::create(array($this->getExecutable()))
+            ->add('-f')->add($this->getConfigFile())
+            ->add('-k')->add($action);
+
+        foreach ($extras as $extra) {
+            $builder->add($extra);
+        }
+
+        return $builder->getProcess();
+    }
+
+
+    protected function asTemplateVars()
+    {
+        return array(
+            'server_root' => $this->getServerRoot(),
+            'config_file' => $this->getConfigFile(),
+            'document_root' => $this->getDocumentRoot(),
+            'port' => $this->getPort(),
+            'log_level' => $this->getLogLevel(),
+            'modules' => $this->getModules(),
+            'error_log' => $this->getErrorLog(),
+            'access_log' => $this->getAccessLog(),
+        );
+    }
+
+    protected function renderConfigFile()
+    {
+        $this->verifyServerRoot();
+
+        $loader = new \Twig_Loader_Filesystem(__DIR__ . "/templates");
+        $twig = new \Twig_Environment($loader, array('autoescape' => false));
+
+        $rendered = $twig->render($this->getTemplate(), $this->asTemplateVars());
+        if (file_put_contents($this->getConfigFile(), $rendered) === false) {
+            throw new \RuntimeException(sprintf('Error rendering config file to %s.', $this->getConfigFile()));
+        }
+        return $this;
+    }
+
+    protected function verifyServerRoot()
+    {
+        $dir = $this->getServerRoot();
+        if (!is_dir($dir)) {
+            if (!mkdir($dir)) {
+                throw new \RuntimeException("Unable to create cache directory {$dir}");
+            }
+            // Nothing in this folder should be committed.
+            file_put_contents($dir . "/.gitignore", "*\n");
+        }
         return $this;
     }
 }
