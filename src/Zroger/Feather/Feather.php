@@ -108,14 +108,36 @@ class Feather
             );
         }
 
+        $this->getLogger()->info(
+            'Listening on localhost:%port, CTRL+C to stop.',
+            array('%port' => $this->getPort())
+        );
+
+        $this->getLogger()->debug(
+            'Server Root => %server_root',
+            array('%server_root' => $this->getServerRoot())
+        );
+
         return $process;
     }
 
     public function stop()
     {
+        $this->getLogger()->info('Shutting down...');
+
         $process = $this->getProcess('stop');
         $process->run();
-        return $process->isSuccessful();
+        if (!$process->isSuccessful()) {
+            throw new \RuntimeException(
+                sprintf(
+                    "Apache failed to stop using the following command:\n%s\n%s",
+                    $process->getCommandLine(),
+                    $process->getErrorOutput()
+                )
+            );
+        }
+
+        $this->getLogger()->info('Server successfully stopped.');
     }
 
     public function isRunning()

@@ -36,38 +36,29 @@ class RunCommand extends Command
             pcntl_signal(SIGINT, array($this, 'shutdown'));
         }
 
-        $feather = $this->getApplication()->getContainer()->get('feather');
+        $feather = $this->get('feather');
+        $feather->start();
 
-        if (!$feather->start()) {
-            throw new \RuntimeException('Error starting server.');
-        }
-        $port = $feather->getPort();
-        $feather->getLogger()->info("Listening on localhost:{$port}, CTRL+C to stop.");
-
-        $file = $feather->getConfigFile();
-        $feather->getLogger()->debug(sprintf('Using config file: %s', $file));
-
-        $this->getApplication()->getContainer()->get('log_watcher')->watch(
+        $this->get('log_watcher')->watch(
             function ($label, $line) use ($feather) {
                 $feather->getLogger()->log($line->getLevel(), $line->getMessage());
             }
         );
     }
 
-    public function shutdown()
+    public function shutdown($signal)
     {
-        // The extra log is to get a clean line after a ^C
-        printf("\r");
-        $feather = $this->getApplication()->getContainer()->get('feather');
-
-        $feather->getLogger()->info('Shutting down...');
-
-        if ($feather->stop()) {
-            $feather->getLogger()->info('Server successfully stopped.');
-            exit();
-        } else {
-            $feather->getLogger()->error('Error stopping server.');
-            exit(1);
+        if ($signal === SIGINT) {
+            // Get a clean line after a ^C
+            printf("\n");
         }
+
+        $feather = $this->get('feather')->stop();
+        exit();
+    }
+
+    protected function get($serviceName)
+    {
+        return $this->getApplication()->getContainer()->get($serviceName);
     }
 }
