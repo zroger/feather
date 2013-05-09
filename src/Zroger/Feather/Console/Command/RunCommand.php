@@ -10,10 +10,6 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class RunCommand extends Command
 {
-    protected $error_log;
-    protected $root;
-    protected $container;
-
     protected function configure()
     {
         $this
@@ -40,12 +36,12 @@ class RunCommand extends Command
             pcntl_signal(SIGINT, array($this, 'shutdown'));
         }
 
-        $this->apache = $this->getApplication()->getContainer()->get('feather');
+        $feather = $this->getApplication()->getContainer()->get('feather');
 
-        if (!$this->apache->start()) {
+        if (!$feather->start()) {
             throw new \RuntimeException('Error starting server.');
         }
-        $port = $this->apache->getPort();
+        $port = $feather->getPort();
         $this->getApplication()->log("Listening on localhost:{$port}, CTRL+C to stop.", 'info');
 
         $file = $this->apache->getConfigFile();
@@ -63,15 +59,15 @@ class RunCommand extends Command
     {
         // The extra log is to get a clean line after a ^C
         printf("\r");
-        // $this->getApplication()->log('');
         $this->getApplication()->log('Shutting down...', 'info');
-        if ($this->apache->stop()) {
+
+        $feather = $this->getApplication()->getContainer()->get('feather');
+        if ($feather->stop()) {
             $this->getApplication()->log('Server successfully stopped.', 'info');
             exit();
         } else {
             $this->getApplication()->log('Error stopping server.', 'error');
             exit(1);
         }
-
     }
 }
