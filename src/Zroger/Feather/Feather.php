@@ -2,7 +2,8 @@
 
 namespace Zroger\Feather;
 
-use Symfony\Component\Process\Process;
+use Symfony\Component\Process\ProcessBuilder;
+use Symfony\Component\Process\ExecutableFinder;
 
 class Feather
 {
@@ -54,12 +55,17 @@ class Feather
      */
     protected $accessLog;
 
-
     /**
      * Filename of the template to be used for rendering the httpd.conf.
      * @var string
      */
     protected $template;
+
+    /**
+     * Full path to the httpd or apache2 executable.
+     * @var string
+     */
+    protected $executable;
 
     public function __construct($serverRoot, $documentRoot)
     {
@@ -76,16 +82,31 @@ class Feather
         $this->template = 'default.conf';
     }
 
-    protected function buildCommandString($action, $extras = '')
+    /**
+     * Get an apache process ready to run.
+     *
+     * @param  string $action The action to pass with -k, usually start or stop.
+     * @param  array  $extras Array of additional arguments.
+     * @return Symfony\Component\Process An instantiated process object.
+     */
+    protected function getProcess($action, $extras = array())
     {
-        return sprintf('httpd -f "%s" -k "%s" %s', $this->getConfigFile(), $action, $extras);
+        $builder = ProcessBuilder::create(array($this->getExecutable()))
+            ->add('-f')->add($this->getConfigFile())
+            ->add('-k')->add($action);
+
+        foreach ($extras as $extra) {
+            $builder->add($extra);
+        }
+
+        return $builder->getProcess();
     }
 
     public function start()
     {
         $this->renderConfigFile();
 
-        $process = new Process($this->buildCommandString('start', "-e {$this->logLevel}"));
+        $process = $this->getProcess('start', array('-e', $this->getLogLevel()));
         $process->run();
 
         if (!$process->isSuccessful()) {
@@ -103,7 +124,7 @@ class Feather
 
     public function stop()
     {
-        $process = new Process($this->buildCommandString('stop'));
+        $process = $this->getProcess('stop');
         $process->run();
         return $process->isSuccessful();
     }
@@ -365,7 +386,7 @@ class Feather
     }
 
     /**
-     * Gets the Filename of the template to be used for rendering the httpd.conf..
+     * Gets the filename of the template to be used for rendering the httpd.conf.
      *
      * @return string
      */
@@ -375,7 +396,7 @@ class Feather
     }
 
     /**
-     * Sets the Filename of the template to be used for rendering the httpd.conf..
+     * Sets the filename of the template to be used for rendering the httpd.conf.
      *
      * @param string $template the template
      *
@@ -384,6 +405,48 @@ class Feather
     public function setTemplate($template)
     {
         $this->template = $template;
+
+        return $this;
+    }
+
+    /**
+     * Gets the full path to the httpd or apache2 executable.
+     *
+     * @return string
+     */
+    public function getExecutable()
+    {
+        if (!isset($this->executable)) {
+            $executable = false;
+
+            $finder = new ExecutableFinder();
+            $names = array('httpd', 'apache2');
+
+            foreach ($names as $name) {
+                if ($executable = $finder->find($name)) {
+                    break;
+                }
+            }
+
+            if (!$executable) {
+                throw new \RuntimeException('Unable to locate an apache executable, either httpd or apache2.');
+            }
+
+            $this->executable = $executable;
+        }
+        return $this->executable;
+    }
+
+    /**
+     * Sets the full path to the httpd or apache2 executable.
+     *
+     * @param string $executable the executable
+     *
+     * @return self
+     */
+    public function setExecutable($executable)
+    {
+        $this->executable = $executable;
 
         return $this;
     }
