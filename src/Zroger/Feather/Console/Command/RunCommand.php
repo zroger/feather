@@ -3,11 +3,10 @@
 namespace Zroger\Feather\Console\Command;
 
 use Symfony\Component\Console\Command\Command;
-use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
-use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 use Zroger\Feather\Log\FileReader;
+use Zroger\Feather\Log\Watcher;
 
 class RunCommand extends Command
 {
@@ -15,18 +14,7 @@ class RunCommand extends Command
     {
         $this
             ->setName('run')
-            ->setDescription('Run the server')
-            ->addArgument(
-                'root',
-                InputArgument::OPTIONAL,
-                'What directory should be used for the document root?'
-            )
-            ->addOption(
-                'config',
-                null,
-                InputOption::VALUE_REQUIRED,
-                'Specify a config file.'
-            );
+            ->setDescription('Run the server');
     }
 
     protected function execute(InputInterface $input, OutputInterface $output)
@@ -37,10 +25,11 @@ class RunCommand extends Command
             pcntl_signal(SIGINT, array($this, 'shutdown'));
         }
 
-        $feather = $this->get('feather');
+        $feather = $this->getApplication()->getFeather();
         $feather->start();
 
-        $this->get('log_watcher')
+        $watcher = new Watcher();
+        $watcher
             ->addReader('error_log', new FileReader($feather->getErrorLog()))
             ->addReader('access_log', new FileReader($feather->getAccessLog()))
             ->watch(
@@ -57,12 +46,7 @@ class RunCommand extends Command
             printf("\n");
         }
 
-        $feather = $this->get('feather')->stop();
+        $this->getApplication()->getFeather()->stop();
         exit();
-    }
-
-    protected function get($serviceName)
-    {
-        return $this->getApplication()->getContainer()->get($serviceName);
     }
 }

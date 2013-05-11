@@ -2,9 +2,15 @@
 
 namespace Zroger\Feather;
 
+use Psr\Log\LoggerInterface;
+use Psr\Log\NullLogger;
+use Symfony\Component\Config\Definition\Processor;
+use Symfony\Component\Config\FileLocator;
 use Symfony\Component\Process\ProcessBuilder;
 use Symfony\Component\Process\ExecutableFinder;
-use Psr\Log\LoggerInterface;
+use Symfony\Component\Yaml\Yaml;
+use Zroger\Feather\Config\AppConfig;
+use Zroger\Feather\Config\YamlConfigLoader;
 
 class Feather
 {
@@ -56,23 +62,39 @@ class Feather
      */
     protected $logger;
 
-    public function __construct($serverRoot, $documentRoot, LoggerInterface $logger)
-    {
-        $this->serverRoot = $serverRoot;
-        $this->documentRoot = $documentRoot;
-        $this->logger = $logger;
+    /**
+     * The location of the user config file, or false to skip loading.
+     * @var string
+     */
+    protected $userConfigFile;
 
+    /**
+     * The location of the local config file, or false to skip loading.
+     * @var string
+     */
+    protected $localConfigFile;
+
+    /**
+     * The list of potential module paths, ordered from most preferred to least.
+     * @var array
+     */
+    protected $modulePaths;
+
+    /**
+     * A flag that gets set to true after the environment has been prepared.
+     * @var boolean
+     */
+    private $prepared;
+
+    public function __construct()
+    {
         // Default values.
-        $this->configFile = $serverRoot . '/httpd.conf';
-        $this->port = 80;
-        $this->logLevel = 'info';
-        $this->modules = array();
         $this->template = 'default.conf';
     }
 
     public function start()
     {
-        $this->renderConfigFile();
+        $this->prepareEnvironment();
 
         $process = $this->getProcess('start', array('-e', $this->getLogLevel()));
         $process->run();
@@ -102,10 +124,13 @@ class Feather
 
     public function stop()
     {
-        $this->getLogger()->info('Shutting down...');
+        $this->prepareEnvironment();
 
         $process = $this->getProcess('stop');
         $process->run();
+
+        $this->getLogger()->info('Shutting down...');
+
         if (!$process->isSuccessful()) {
             throw new \RuntimeException(
                 sprintf(
@@ -137,6 +162,9 @@ class Feather
      */
     public function getServerRoot()
     {
+        if (!isset($this->serverRoot)) {
+            $this->serverRoot = posix_getcwd() . '/.feather';
+        }
         return $this->serverRoot;
     }
 
@@ -149,7 +177,7 @@ class Feather
      */
     public function setServerRoot($serverRoot)
     {
-        $this->serverRoot = $serverRoot;
+        $this->serverRoot = realpath($serverRoot);
 
         return $this;
     }
@@ -255,7 +283,30 @@ class Feather
      */
     public function setModules(array $modules)
     {
-        $this->modules = $modules;
+        $this->modules = array();
+        foreach ($modules as $module => $filename) {
+            $this->addModule($module, $filename);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Add a module to be used in the server configuration.
+     *
+     * @param string $module The module name, e.g. "php5_module"
+     * @param string $filename The filename of the module, e.g. "libphp5.so"
+     *
+     * @return self
+     */
+    public function addModule($module, $filename)
+    {
+        if (!isset($this->modules)) {
+            $this->modules = array();
+        }
+
+        $locator = new FileLocator($this->getModulePaths());
+        $this->modules[$module] = $locator->locate($filename, null, true);
 
         return $this;
     }
@@ -379,13 +430,121 @@ class Feather
     }
 
     /**
-     * Gets the PSR3 Logger..
+     * Gets the PSR3 Logger.
      *
      * @return LoggerInterface
      */
     public function getLogger()
     {
+        if (!isset($this->logger)) {
+            $this->setLogger(new NullLogger());
+        }
         return $this->logger;
+    }
+
+
+    /**
+     * Sets the PSR3 Logger.
+     *
+     * @param LoggerInterface $logger the logger
+     *
+     * @return self
+     */
+    public function setLogger(LoggerInterface $logger)
+    {
+        $this->logger = $logger;
+
+        return $this;
+    }
+
+    /**
+     * Gets the The location of the user config file, or false to skip loading.
+     *
+     * @return string
+     */
+    public function getUserConfigFile()
+    {
+        if (!isset($this->userConfigFile)) {
+            $file = getenv('HOME') . '/.feather.yml';
+            $this->userConfigFile = file_exists($file) ? $file : false;
+        }
+
+        return $this->userConfigFile;
+    }
+
+    /**
+     * Sets the The location of the user config file, or false to skip loading.
+     *
+     * @param string $userConfigFile the userConfigFile
+     *
+     * @return self
+     */
+    public function setUserConfigFile($userConfigFile)
+    {
+        $this->userConfigFile = $userConfigFile;
+
+        return $this;
+    }
+
+    /**
+     * Gets the The location of the local config file, or false to skip loading.
+     *
+     * @return string
+     */
+    public function getLocalConfigFile()
+    {
+        if (!isset($this->localConfigFile)) {
+            $file = posix_getcwd() . '/feather.yml';
+            $this->localConfigFile = file_exists($file) ? $file : false;
+        }
+
+        return $this->localConfigFile;
+    }
+
+    /**
+     * Sets the The location of the local config file, or false to skip loading.
+     *
+     * @param string $localConfigFile the localConfigFile
+     *
+     * @return self
+     */
+    public function setLocalConfigFile($localConfigFile)
+    {
+        $this->localConfigFile = $localConfigFile;
+
+        return $this;
+    }
+
+    /**
+     * Get the list of potential module paths, ordered from most preferred
+     * to least.
+     *
+     * @return array Sorted array of possible module paths.
+     */
+    public function getModulePaths()
+    {
+        if (!isset($this->modulePaths)) {
+            $dirs = array();
+
+            // PHP 5.3 from josegonzalez/php/php53 homebrew tap.
+            if (exec('which brew')) {
+                if ($php_dir = exec('brew --prefix php53')) {
+                    $dirs[] = $php_dir . '/libexec/apache2';
+                }
+            }
+
+            // CentOS
+            $dirs[] = '/usr/lib64/httpd/modules/';
+
+            // Ubuntu
+            $dirs[] = '/usr/lib/apache2/modules';
+
+            // osx default apache.
+            $dirs[] = '/usr/libexec/apache2';
+
+            $this->modulePaths = $dirs;
+        }
+        return $this->modulePaths;
     }
 
     protected function asTemplateVars()
@@ -400,6 +559,58 @@ class Feather
             'error_log' => $this->getErrorLog(),
             'access_log' => $this->getAccessLog(),
         );
+    }
+
+    protected function prepareEnvironment()
+    {
+        if (!$this->prepared) {
+            $this->loadConfigFiles();
+            $this->renderConfigFile();
+            $this->prepared = true;
+        }
+    }
+
+    /**
+     * Load user config and project config files.  Values from these files are
+     * used to set properties on this object if they are not set.
+     */
+    protected function loadConfigFiles()
+    {
+        $configs = array();
+        $loader = new YamlConfigLoader(new FileLocator());
+
+        if ($file = $this->getUserConfigFile()) {
+            $userConfig = $loader->load($file);
+            $configs[] = $userConfig;
+            $this->getLogger()->info("Loading user config from $file.");
+            $this->getLogger()->debug('user config => ' . print_r($userConfig, true));
+        }
+
+        if ($file = $this->getLocalConfigFile()) {
+            $localConfig = $loader->load($file);
+            $configs[] = $localConfig;
+            $this->getLogger()->info("Loading local config from $file.");
+            $this->getLogger()->debug('local config => ' . print_r($localConfig, true));
+        }
+
+        $processor = new Processor();
+        $configuration = new AppConfig();
+        $config = $processor->processConfiguration($configuration, $configs);
+
+        $this->getLogger()->debug('processed config => ' . print_r($config, true));
+
+        foreach ($config as $key => $value) {
+            $words = explode('_', $key);
+            $words = array_map('ucfirst', $words);
+            $property = lcfirst(implode('', $words));
+            $setter = 'set' . implode('', $words);
+
+            if (!isset($this->$property)) {
+                $this->$setter($value);
+            }
+        }
+
+        $this->setModules($config['modules']);
     }
 
     protected function renderConfigFile()

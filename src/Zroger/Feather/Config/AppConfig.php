@@ -15,14 +15,21 @@ class AppConfig implements ConfigurationInterface
         $rootNode
             ->children()
                 ->scalarNode('server_root')
-                    ->defaultValue('%feather.paths.base%/.feather')
+                    // @codingStandardsIgnoreStart
+                    ->info('The path to the server root.  Relative paths will be resolved based on the current working directory.')
+                    // @codingStandardsIgnoreEnd
+                    ->defaultValue('./.feather')
                 ->end()
                 ->integerNode('port')
+                    ->info('The port number for apache to listen on.')
                     ->defaultValue(8080)
                     ->min(1)->max(65535)
                 ->end()
                 ->scalarNode('document_root')
-                    ->defaultValue('%feather.paths.base%')
+                    // @codingStandardsIgnoreStart
+                    ->info('The path to the document root.  Relative paths will be resolved to the current working directory.')
+                    // @codingStandardsIgnoreEnd
+                    ->defaultValue('./')
                 ->end()
                 ->scalarNode('template')
                     ->defaultValue('drupal.twig')
