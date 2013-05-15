@@ -3,14 +3,33 @@
 Feather is the simplest way to use the Apache HTTP server in a local development
 environment.
 
-## Per-project installation via composer
+* [Installation](#installation)
+* [Usage](#usage)
+* [Configuration](#configuration)
+* [Options](#options)
+* [Example Configuration File](#example-configuration-file)
 
-To use feather for a single project, simply add feather to your `composer.json`,
-file, ususally in the `require-dev` section.
+## Installation
+
+Feather is most useful when installed system-wide.  These instructions assume
+that you have a `/usr/local/bin` directory in your path.
+
+```
+cd /usr/local/bin
+curl -o feather http://zroger.github.io/feather/feather.phar
+chmod +x feather
+```
+
+After this you can run feather from any directory on your system.
+
+### Composer installation
+
+To use feather for a single project, or extend feather with custom functionality,
+simply add feather to your `composer.json` file.
 
 ```
 {
-    "require-dev": {
+    "require": {
         "zroger/feather": "*"
     },
     "minimum-stability": "dev",
@@ -21,20 +40,6 @@ file, ususally in the `require-dev` section.
 ```
 
 Run `composer update`, then feather will be located at `bin/feather`.
-
-
-## System-wide installation via phar download
-
-Feather is even more useful when installed system-wide.  These instructions assume
-that you have a `/usr/local/bin` directory in your path.
-
-```
-cd /usr/local/bin
-curl -o feather http://zroger.github.io/feather/feather.phar
-chmod +x feather
-```
-
-After this you can run feather from any directory on your system.
 
 ## Usage
 
@@ -47,19 +52,97 @@ defaults to 8080, and docroot defaults to the current directory.
 
 ## Configuration
 
-Feather will look for a file named `feather.yml` with pre-configured values for
-starting the server.  Currently supported values are `root` and `port`.  The
-`root` property is relative to the directory containing `feather.yml`.  This
-can be very handy to put at the root of your project repo, especially when your
-document root is not the same as your project root.
+Feather is built to require zero configuration to get a simple server running
+development, but sometimes a little configuration is required to make things
+easier.  Feather has three methods of configuration, listed in the order in
+which they are applied.
+
+### User configuration file
+
+The user configuration file is a yaml file that must be named `.feather.yml` in
+the current user's home directory.  This file can be useful for overridding
+feather's default configuration for your specific preferences, for example if
+you want feather to use port 8888 by default rather than port 8080.  The options
+specified in the user configuration file are the least significant and will be
+overridden by options in the local configuration file and command-line options.
+
+### Local configuration file
+
+The local configuration file is a yaml file named `feather.yml` in the current
+directory.  This file is typically used for project-specific options, such as
+specifying a specific document root.  The options in this file override the
+user configuration, but not the CLI options.
+
+### Command-line options
+
+The options specified on the command-line override any options from either of
+the configuration files.  Only a subset of the configuration options are
+available from the command-line.
+
+## Options
+
+### document_root
+
+Set the path to the document root.  When set from a configuration file, a
+relative path will be resolved as relative to the directory of the configuration
+file.  When specified as a CLI option, a relative path will be resolved to the
+current working directory.  Defaults to the current working directory.
+
+### port
+
+Set the port for apache to listen on.  Defaults to 8080.
+
+### server_root
+
+Set the ServerRoot directive for the Apache configuration.  Feather also uses
+this as the directory where the `httpd.conf` file will be written and where log
+files as created.  Relative paths are resolved to the directory of the config
+file that this option is being set from.  Defaults to `$CWD/.feather`.
+
+### template
+
+Set the Twig template to be used to generate the `httpd.conf`.  Defaults to
+`src/Zroger/Feather/templates/default.conf`.
+
+### log_level
+
+Set the log level to be used by Apache.  Must be one of `debug`, `info`,
+`notice`, `warn`, `error`, `crit`, `alert` or `emerg`.  Defaults to `info`.
+
+### modules
+
+Set the Apache modules to be loaded.  This is a list of key/value pairs where
+the keys are the module name (like `rewrite_module`) and the value is the file
+name (like `mod_rewrite.so`).  Feather will attempt to locate the modules in a
+number of well-known locations so you do not need to specify absolute paths.
+The default modules are a very minimal set of modules that is still capable of
+running a PHP web application.  Default:
 
 ```
-root: build/html
-port: 9999
+authz_host_module: mod_authz_host.so
+dir_module: mod_dir.so
+env_module: mod_env.so
+mime_module: mod_mime.so
+log_config_module: mod_log_config.so
+rewrite_module: mod_rewrite.so
+php5_module: libphp5.so
 ```
 
-When searching for the `feather.yml` file, Feather will look first in the
-current directory and then traverse up the directory tree either until it finds
-an appropriate file, or it reaches the filesystem root.  If you put a config
-file at the root of your project, you can run feather from any subdirectory of
-your project.
+## Example Configuration File
+
+```
+# feather.yml
+document_root: build/html
+port: 8080
+server_root: .feather
+template: default.conf
+log_level: debug
+modules:
+  authz_host_module: mod_authz_host.so
+  dir_module: mod_dir.so
+  env_module: mod_env.so
+  mime_module: mod_mime.so
+  log_config_module: mod_log_config.so
+  rewrite_module: mod_rewrite.so
+  php5_module: libphp5.so
+```
