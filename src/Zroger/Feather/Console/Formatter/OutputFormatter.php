@@ -16,10 +16,14 @@ class OutputFormatter extends BaseOutputFormatter
             $decorated,
             array_merge(
                 array(
+                    'emergency' => new OutputFormatterStyle('red'),
+                    'alert'     => new OutputFormatterStyle('red'),
+                    'critical'  => new OutputFormatterStyle('red'),
                     'error'     => new OutputFormatterStyle('red'),
-                    'debug'     => new OutputFormatterStyle('yellow'),
-                    'notice'    => new OutputFormatterStyle('yellow'),
-                    'info'      => new OutputFormatterStyle('yellow'),
+                    'warning'   => new OutputFormatterStyle('yellow'),
+                    'notice'    => new OutputFormatterStyle('cyan'),
+                    'info'      => new OutputFormatterStyle('cyan'),
+                    'debug'     => new OutputFormatterStyle('blue'),
                 ),
                 $styles
             )
