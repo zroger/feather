@@ -16,7 +16,7 @@ if ((!$loader = includeIfExists(__DIR__.'/../vendor/autoload.php')) && (!$loader
     );
 }
 
-use Zroger\Feather\Application;
+use Zroger\Feather\Console\Application;
 
 $app = new Application();
 $app->run();

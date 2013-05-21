@@ -1,3 +1,7 @@
 composer.lock
 vendor
 *.phar
+*.sublime-project
+*.sublime-workspace
+.feather
+.idea
