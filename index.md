@@ -21,11 +21,11 @@ Installation
 Feather is most useful when installed system-wide.  These instructions assume
 that you have a `/usr/local/bin` directory in your path.
 
-```
+{% highlight bash %}
 cd /usr/local/bin
 curl -o feather http://zroger.github.io/feather/feather.phar
 chmod +x feather
-```
+{% endhighlight %}
 
 After this you can run feather from any directory on your system.
 
@@ -34,7 +34,7 @@ After this you can run feather from any directory on your system.
 To use feather for a single project, or extend feather with custom functionality,
 simply add feather to your `composer.json` file.
 
-```
+{% highlight json %}
 {
     "require": {
         "zroger/feather": "*"
@@ -44,16 +44,16 @@ simply add feather to your `composer.json` file.
         "bin-dir": "bin/"
     }
 }
-```
+{% endhighlight %}
 
 Run `composer update`, then feather will be located at `bin/feather`.
 
 Usage
 -----
 
-```
+{% highlight bash %}
 feather run [--port port] [docroot]
-```
+{% endhighlight %}
 
 Start up a web server using the specified document root and port number.  Port
 defaults to 8080, and docroot defaults to the current directory.
@@ -128,7 +128,7 @@ number of well-known locations so you do not need to specify absolute paths.
 The default modules are a very minimal set of modules that is still capable of
 running a PHP web application.  Default:
 
-```
+{% highlight yaml %}
 authz_host_module: mod_authz_host.so
 dir_module: mod_dir.so
 env_module: mod_env.so
@@ -136,12 +136,12 @@ mime_module: mod_mime.so
 log_config_module: mod_log_config.so
 rewrite_module: mod_rewrite.so
 php5_module: libphp5.so
-```
+{% endhighlight %}
 
 Example Configuration File
 --------------------------
 
-```
+{% highlight yaml %}
 # feather.yml
 document_root: build/html
 port: 8080
@@ -156,4 +156,4 @@ modules:
   log_config_module: mod_log_config.so
   rewrite_module: mod_rewrite.so
   php5_module: libphp5.so
-```
+{% endhighlight %}
