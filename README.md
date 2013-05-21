@@ -1,7 +1,10 @@
-## Overview
+Feather
+=======
 
-Feather is the simplest way to use the Apache HTTP server in a local development
-environment.
+Feather is the simplest way to use the Apache HTTP server as a local development
+server.
+
+[![Build Status](https://travis-ci.org/zroger/feather.png?branch=develop)](https://travis-ci.org/zroger/feather)
 
 * [Installation](#installation)
 * [Usage](#usage)
@@ -9,7 +12,8 @@ environment.
 * [Options](#options)
 * [Example Configuration File](#example-configuration-file)
 
-## Installation
+Installation
+------------
 
 Feather is most useful when installed system-wide.  These instructions assume
 that you have a `/usr/local/bin` directory in your path.
@@ -41,7 +45,8 @@ simply add feather to your `composer.json` file.
 
 Run `composer update`, then feather will be located at `bin/feather`.
 
-## Usage
+Usage
+-----
 
 ```
 feather run [--port port] [docroot]
@@ -50,7 +55,8 @@ feather run [--port port] [docroot]
 Start up a web server using the specified document root and port number.  Port
 defaults to 8080, and docroot defaults to the current directory.
 
-## Configuration
+Configuration
+-------------
 
 Feather is built to require zero configuration to get a simple server running
 development, but sometimes a little configuration is required to make things
@@ -79,7 +85,8 @@ The options specified on the command-line override any options from either of
 the configuration files.  Only a subset of the configuration options are
 available from the command-line.
 
-## Options
+Options
+-------
 
 ### document_root
 
@@ -128,7 +135,8 @@ rewrite_module: mod_rewrite.so
 php5_module: libphp5.so
 ```
 
-## Example Configuration File
+Example Configuration File
+--------------------------
 
 ```
 # feather.yml
