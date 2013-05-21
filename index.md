@@ -52,7 +52,7 @@ Usage
 -----
 
 {% highlight bash %}
-feather run [--port port] [docroot]
+feather run [-r|--root="..."] [-p|--port="..."]
 {% endhighlight %}
 
 Start up a web server using the specified document root and port number.  Port
@@ -95,8 +95,8 @@ Options
 
 Set the path to the document root.  When set from a configuration file, a
 relative path will be resolved as relative to the directory of the configuration
-file.  When specified as a CLI option, a relative path will be resolved to the
-current working directory.  Defaults to the current working directory.
+file.  When specified as a CLI option (as --root), a relative path will be resolved
+to the current working directory.  Defaults to the current working directory.
 
 ### port
 
