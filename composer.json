@@ -9,16 +9,19 @@
     ],
     "require": {
         "ext-posix": "*",
+        "pimple/pimple": "1.0.*@stable",
         "psr/log": "1.0.*@stable",
-        "symfony/config": "2.2.*@stable",
         "symfony/console": "2.2.*@stable",
+        "symfony/finder": "2.2.*@stable",
         "symfony/process": "2.2.*@stable",
         "symfony/yaml": "2.2.*@stable",
         "twig/twig": "1.*@stable",
-        "herrera-io/phar-update": "1.*@stable"
+        "kherge/amend": "3.*@stable"
     },
     "require-dev": {
-        "squizlabs/php_codesniffer": "1.4.*"
+        "squizlabs/php_codesniffer": "1.4.*",
+        "phpunit/phpunit": "3.7.*",
+        "mikey179/vfsStream": "1.2.*"
     },
     "autoload": {
         "psr-0": { "Zroger\\Feather\\": "src" }

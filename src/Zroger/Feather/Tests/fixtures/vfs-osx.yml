@@ -1,0 +1,12 @@
+usr:
+    libexec:
+        apache2:
+            libphp5.so: ''
+    local:
+        opt:
+            php53:
+                libexec:
+                    apache2:
+                        libphp5.so: ''
+sbin:
+    httpd: ''

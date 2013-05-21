@@ -1,38 +1,42 @@
 <?php
 
+/*
+ * This file is part of the Feather package.
+ *
+ * (c) Roger López <roger@zroger.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Zroger\Feather\Config;
 
-use Symfony\Component\Config\Loader\FileLoader;
 use Symfony\Component\Yaml\Yaml;
 
-class YamlConfigLoader extends FileLoader
+class YamlConfigLoader
 {
-    public function load($resource, $type = null)
+    public function load($file, $type = null)
     {
-        $values = Yaml::parse($resource);
+        $values = Yaml::parse($file);
 
         // relative paths in yaml config are relative to the yaml file.
-        if (isset($values['document_root'])) {
-            $values['document_root'] = $this->resolveRelativePath($values['document_root'], dirname($resource));
-        }
+        $paths = array('document_root', 'server_root');
+        $basepath = dirname($file);
 
-        if (isset($values['server_root'])) {
-            $values['document_root'] = $this->resolveRelativePath($values['document_root'], dirname($resource));
+        foreach ($paths as $path) {
+            if (isset($values[$path])) {
+                $values[$path] = $this->resolveRelativePath($values[$path], $basepath);
+            }
         }
 
         return $values;
     }
 
-    public function supports($resource, $type = null)
-    {
-        return is_string($resource) && 'yml' === pathinfo($resource, PATHINFO_EXTENSION);
-    }
-
     protected function resolveRelativePath($path, $basepath)
     {
         if (strpos($path, '/') !== 0) {
-            return $basepath . '/' . $path;
+            $path = $basepath . '/' . $path;
         }
-        return $path;
+        return realpath($path);
     }
 }

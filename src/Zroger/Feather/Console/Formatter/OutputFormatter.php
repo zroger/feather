@@ -1,5 +1,14 @@
 <?php
 
+/*
+ * This file is part of the Feather package.
+ *
+ * (c) Roger López <roger@zroger.com>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Zroger\Feather\Console\Formatter;
 
 use Symfony\Component\Console\Formatter\OutputFormatter as BaseOutputFormatter;
